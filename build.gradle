@@ -4,12 +4,13 @@ plugins {
     id 'maven-publish'
 }
 
-group 'org.kazurayam'
-version '0.1.0'
-
 repositories {
     mavenCentral()
 }
+
+group = 'org.kazurayam'
+archivesBaseName = "subprocessj"
+version = '0.1.0'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -36,24 +37,9 @@ javadoc {
     options.encoding = 'UTF-8'
     options.locale = "en_US"
 }
-
 task publishJavadoc(type: Copy) {
     from 'build/docs/javadoc'
     into 'docs/api'
 }
-
 javadoc.finalizedBy publishJavadoc
 
-
-publishing {
-    repositories {
-        maven {
-            name = "OSSRH"
-            url = "https://oss.sonotype.org/service/local/staging/deploy/maven2/"
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
-            }
-        }
-    }
-}

@@ -16,6 +16,9 @@ I read the following article and did as it tells.
 
 - [Qiita: GitHub＋Maven Centralで自作ライブラリを公開する](https://qiita.com/yoshikawaa/items/a7a7c1d927f6e7e75320)
 
+The following chart showed me a good picture what to do:
+
+![Maven Central公開までの流れ](https://camo.qiitausercontent.com/b089d18ebc0259acd7e1d24451a389c997e767f0/68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f796f7368696b617761612f696d616765732f6d61737465722f6769746875622d6d6176656e2d63656e7472616c2f30305f6f766572766965772e706e67)
 
 ## What I did...
 
@@ -24,6 +27,12 @@ I read the following article and did as it tells.
 At first, I need to be able to login to [Sonatype JIRA](https://issues.sonatype.org/secure/Dashboard.jspa).
 
 I Singed up there to create a credential for me.
+
+I pushed the "Create" button to open a new issue for me to 
+
+![CreateIssueSonatypeJIRA](./images/Create-Issue-Sonatype-JIRA.png)
+
+![JIRA Issue](images/-OSSRH-71734-subprocessj-Sonatype-JIRA.png)
 
 ### My domain
 
@@ -36,6 +45,21 @@ Of course, I developed this project.
 - I wrote Gradle build.gradle to build the project's jar.
 - I wrote the javadoc.
 - I added LICENSE file, which states the Apache License 2.0.
+
+
+### CI/CD
+
+
+### jar of javadoc, source codes
+
+In the build.gradle, I wrote
+```
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+```
+then execute `$ gradle build`, then I got 2 jar files in the `build/lib` directory.
 
 ### create pom.xml
 
@@ -55,3 +79,6 @@ I write a task `createPom` in the build.gradle.
 
 ## Create an Issue in Sonatype JIRA for request publication.
 
+
+
+[The Central Repository Documentation; Deploying to OSSRH with Gradle](https://central.sonatype.org/publish/publish-gradle/)

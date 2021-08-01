@@ -45,8 +45,8 @@ drwxr-xr-x    6 root            admin      192  1  1  2020 ..
 
 ## Motivation, etc.
 
-There are many articles that tell how to use [`java.lang.ProcessBuilder`](https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html). For example, I learned ["Baeldung article: Run Shell Command in Java"](https://www.baeldung.com/run-shell-command-in-java). The ProcessBuilder class is a state of the art with rich set of functionalities. But for me it is not very easy. It involved multi-threading to consume the stream output form subprocess. I do not want to repeat it often.
+There are many articles that tell how to use [`java.lang.ProcessBuilder`](https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html). For example, I learned ["Baeldung article: Run Shell Command in Java"](https://www.baeldung.com/run-shell-command-in-java). The ProcessBuilder class is a state of the art with rich set of functionalities. But for me it is not very easy to write a program that utilized ProcessBuilder. It involves multi-threading to consume the stream output from subprocess. I do not want to repeat writing it.
 
-So I have made a simple wrapper of ProcessBuilder which exposes limited funtionality.
+So I have made a simple wrapper of ProcessBuilder which exposes a limited subset of its functionalities.
 
-I named this as `SubprocjessJ` as it is a homage to Python's [Subprocess](https://docs.python.org/3/library/subprocess.html) module. I like its simplicity.
+I named this as `SubprocjessJ` as it is a homage to the [Subprocess](https://docs.python.org/3/library/subprocess.html) module of Python.
