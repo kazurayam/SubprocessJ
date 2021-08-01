@@ -41,8 +41,8 @@ javadoc.finalizedBy publishJavadoc
 publishing {
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/kazurayam/SubprocessJ"
+            name = "OSSRH"
+            url = "https://oss.sonotype.org/service/local/staging/deploy/maven2/"
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
