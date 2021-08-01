@@ -1,5 +1,6 @@
 package com.kazurayam.subprocessj;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -39,13 +40,17 @@ class SubprocessTest {
          */
     }
 
+    /**
+     * this test method will throw IOException when executed on a CI/CD environment where
+     * "git" is not installed. So I disabled this.
+     */
+    @Disabled
     @Test
     void test_git() throws Exception {
         CompletedProcess cp =
-                new Subprocess()
-                        .cwd(new File(System.getProperty("user.home")))
-                        .run(Arrays.asList("/usr/local/bin/git", "status")
-                        );
+                    new Subprocess()
+                            .cwd(new File(System.getProperty("user.home")))
+                            .run(Arrays.asList("/usr/local/bin/git", "status"));
         assertEquals(128, cp.returncode());
         //System.out.println(String.format("stdout: %s", cp.getStdout()));
         //System.out.println(String.format("stderr: %s", cp.getStderr()));
@@ -66,5 +71,7 @@ class SubprocessTest {
         System.out.println(cp.returncode());
         cp.stdout().forEach(System.out::println);
         cp.stderr().forEach(System.out::println);
+        assertEquals(0, cp.returncode());
+        assertTrue(cp.stdout().size() > 0);
     }
 }
