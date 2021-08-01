@@ -11,26 +11,26 @@ class SubprocessTest {
 
     @Test
     void test_ls() throws Exception {
-        Subprocess.CompletedProcess cp =
+        CompletedProcess cp =
                 new Subprocess()
-                        .setCurrentDir(new File("."))
-                        .process(Arrays.asList("sh", "-c", "ls")
+                        .cwd(new File("."))
+                        .run(Arrays.asList("sh", "-c", "ls")
                         );
-        assertEquals(0, cp.getReturnCode());
+        assertEquals(0, cp.returncode());
         //println "stdout: ${cp.getStdout()}";
         //println "stderr: ${cp.getStderr()}";
-        assertTrue(cp.getStdout().size() > 0);
-        assertTrue(cp.getStdout().contains("src"));
+        assertTrue(cp.stdout().size() > 0);
+        assertTrue(cp.stdout().contains("src"));
     }
 
     @Test
     void test_date() throws Exception {
-        Subprocess.CompletedProcess cp =
-                new Subprocess().process(Arrays.asList("/bin/date"));
-        assertEquals(0, cp.getReturnCode());
+        CompletedProcess cp =
+                new Subprocess().run(Arrays.asList("/bin/date"));
+        assertEquals(0, cp.returncode());
         //println "stdout: ${cp.getStdout()}";
         //println "stderr: ${cp.getStderr()}";
-        assertTrue(cp.getStdout().size() > 0);
+        assertTrue(cp.stdout().size() > 0);
         /*
         assertTrue(cp.getStdout().stream()
                 .filter { line ->
@@ -41,20 +41,30 @@ class SubprocessTest {
 
     @Test
     void test_git() throws Exception {
-        Subprocess.CompletedProcess cp =
+        CompletedProcess cp =
                 new Subprocess()
-                        .setCurrentDir(new File(System.getProperty("user.home")))
-                        .process(Arrays.asList("/usr/local/bin/git", "status")
+                        .cwd(new File(System.getProperty("user.home")))
+                        .run(Arrays.asList("/usr/local/bin/git", "status")
                         );
-        assertEquals(128, cp.getReturnCode());
+        assertEquals(128, cp.returncode());
         //System.out.println(String.format("stdout: %s", cp.getStdout()));
         //System.out.println(String.format("stderr: %s", cp.getStderr()));
-        assertTrue(cp.getStderr().size() > 0);
+        assertTrue(cp.stderr().size() > 0);
         assertEquals(1,
-                cp.getStderr().stream()
+                cp.stderr().stream()
                         .filter(line -> line.contains("fatal: not a git repository"))
                         .collect(Collectors.toList())
                         .size()
         );
+    }
+
+    @Test
+    void test_demo() throws Exception {
+        Subprocess subprocess = new Subprocess();
+        subprocess.cwd(new File(System.getProperty("user.home")));
+        CompletedProcess cp = subprocess.run(Arrays.asList("ls", "-la", "."));
+        System.out.println(cp.returncode());
+        cp.stdout().forEach(System.out::println);
+        cp.stderr().forEach(System.out::println);
     }
 }

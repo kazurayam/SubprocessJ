@@ -15,7 +15,6 @@ targetCompatibility = '1.8'
 
 def defaultEncoding = 'UTF-8'
 tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
-tasks.withType(GroovyCompile).each {it.groovyOptions.encoding = defaultEncoding }
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
@@ -25,6 +24,19 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+javadoc {
+    options.encoding = 'UTF-8'
+    options.locale = "en_US"
+}
+
+task publishJavadoc(type: Copy) {
+    from 'build/docs/javadoc'
+    into 'docs/api'
+}
+
+javadoc.finalizedBy publishJavadoc
+
 
 publishing {
     repositories {
