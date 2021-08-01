@@ -35,7 +35,7 @@ Of course, I developed this project.
 - I wrote enough unit tests.
 - I wrote Gradle build.gradle to build the project's jar.
 - I wrote the javadoc.
-- I added the LICENSE.
+- I added LICENSE file, which states the Apache License 2.0.
 
 ### create pom.xml
 
