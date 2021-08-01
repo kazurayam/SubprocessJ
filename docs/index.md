@@ -2,6 +2,10 @@
 
 You can execute arbitrary OS command using `com.kazurayam.subprocessj.Subprocess` in your Java application.
 
+### API
+
+Javadoc is [here](./api/index.html)
+
 ### Example
 
 You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. The `run()` will wait for the sub-process to finish, and returns a `com.kazurayam.subprocessj.CompletedProcess` object which contains the return code, STDOUT and STDERR emitted by the sub-process.
