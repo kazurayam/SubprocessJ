@@ -49,4 +49,4 @@ There are many articles that tell how to use [`java.lang.ProcessBuilder`](https:
 
 So I have made a simple wrapper of ProcessBuilder which exposes a limited subset of its functionalities.
 
-I named this as `SubprocjessJ` as it is a homage to the [Subprocess](https://docs.python.org/3/library/subprocess.html) module of Python.
+I named this as `subprocjessj` as I meant it to be a homage to the [Subprocess](https://docs.python.org/3/library/subprocess.html) module of Python.
