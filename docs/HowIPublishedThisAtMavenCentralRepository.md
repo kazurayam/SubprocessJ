@@ -14,8 +14,16 @@ But I have never published my artifacts in the Maven Central. How can I do it? S
 
 I read the following article and did as it tells.
 
+- [The Central Repository Documentation/Getting started](https://central.sonatype.org/publish/publish-guide/)
+
+- [The Central Repository Documentation/Requirements](https://central.sonatype.org/publish/requirements/)
+
+- [The Central Repository Documentation/Gradle](https://central.sonatype.org/publish/publish-gradle/)
+
 - [Qiita: GitHub＋Maven Centralで自作ライブラリを公開する](https://qiita.com/yoshikawaa/items/a7a7c1d927f6e7e75320)
 
+- [Gradleのmaven-publishプラグインでライブラリーを発行する方法 - 1](http://mike-neck.github.io/blog/2013/06/19/publish-maven-artifact-with-sign-files-1/)
+- 
 The following chart showed me a good picture what to do:
 
 ![Maven Central公開までの流れ](https://camo.qiitausercontent.com/b089d18ebc0259acd7e1d24451a389c997e767f0/68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f796f7368696b617761612f696d616765732f6d61737465722f6769746875622d6d6176656e2d63656e7472616c2f30305f6f766572766965772e706e67)

@@ -2,15 +2,16 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'maven-publish'
+    id 'signing'
 }
 
 repositories {
     mavenCentral()
 }
 
-group = 'org.kazurayam'
+group = 'com.kazurayam'
 archivesBaseName = "subprocessj"
-version = '0.1.0'
+version = '0.1.0-SNAPSHOT'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -23,11 +24,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
-
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
@@ -37,9 +33,123 @@ javadoc {
     options.encoding = 'UTF-8'
     options.locale = "en_US"
 }
-task publishJavadoc(type: Copy) {
+task copyJavadoc(type: Copy) {
     from 'build/docs/javadoc'
     into 'docs/api'
 }
-javadoc.finalizedBy publishJavadoc
+javadoc.finalizedBy copyJavadoc
 
+task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'subprocessj'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'subprocessj'
+                description = 'an easy-to-use wrapper of java.lang.ProcessBuilder'
+                url = 'https://kazurayam.github.io/subprocessj/'
+                properties = [ "dummy.prop.with.dots": "value" ]
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'https://www.apache.org.licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'kazurayam'
+                        name = 'URAYAMA,kazuaki'
+                        email = 'kazuaki.urayama@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'git@github.com:kazurayam/subprocessj.git'
+                    developerConnection = 'git@github.com:kazurayam/subprocessj.git'
+                    url = 'https://github.com/kazurayam/subprocessj'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
+            def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+        }
+    }
+}
+
+
+/*
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'subprocessj'
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description 'A Java library which enables you to easily execute arbitrary OS command in a subprocess, and to get the command result: return code as int, STDOUT and STDERR as List of String.'
+                url 'https://github.com/kazurayam/subprocessj'
+
+                scm {
+                    connection 'scm:svn:https://github.com/kazurayam/subprocessj'
+                    developerConnection 'scm:svn:https://github.com/kazurayam/subprocessj'
+                    url 'https://github.com/kazurayam/subprocessj'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache License, Version 2.0'
+                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'kazurayam'
+                        name 'URAYAMA,kazuaki'
+                        email 'kazuaki.urayama@gmail.com'
+                    }
+                }
+            }
+        }
+    }
+}
+ */
