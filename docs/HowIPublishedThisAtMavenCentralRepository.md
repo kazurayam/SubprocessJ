@@ -90,3 +90,81 @@ I write a task `createPom` in the build.gradle.
 
 
 [The Central Repository Documentation; Deploying to OSSRH with Gradle](https://central.sonatype.org/publish/publish-gradle/)
+
+
+
+## sign with GnuPG
+
+https://github.com/kazurayam/gpg_for_signing_subprocessj_artifacts
+
+```
+$ gradle sign
+```
+
+I got
+
+```
+$ cd build/libs
+:~/github/subprocessj/build/libs (master *+)
+$ tree .
+.
+|-- subprocessj-0.1.0-SNAPSHOT-javadoc.jar
+|-- subprocessj-0.1.0-SNAPSHOT-javadoc.jar.asc
+|-- subprocessj-0.1.0-SNAPSHOT-sources.jar
+|-- subprocessj-0.1.0-SNAPSHOT-sources.jar.asc
+|-- subprocessj-0.1.0-SNAPSHOT.jar
+`-- subprocessj-0.1.0-SNAPSHOT.jar.asc
+
+0 directories, 6 files
+```
+
+in the `build/libs` directory, I could find the *.jar files and the jar.asc files which is the "signages" of the jars.
+
+
+
+### publishing the artfacts to the MavenLocal directory
+
+
+```
+$ cd subprocessj
+:~/github/subprocessj (master *+)
+
+$ gradle clean build sign publishToMavenLocal
+...
+BUILD SUCCESSFUL in 1s
+6 actionable tasks: 6 executed
+:~/github/subprocessj (master *+)
+
+$ tree ~/.m2/repository/com/kazurayam
+/Users/kazuakiurayama/.m2/repository/com/kazurayam
+`-- subprocessj
+    |-- 0.1.0-SNAPSHOT
+    |   |-- maven-metadata-local.xml
+    |   |-- subprocessj-0.1.0-SNAPSHOT.jar
+    |   |-- subprocessj-0.1.0-SNAPSHOT.module
+    |   `-- subprocessj-0.1.0-SNAPSHOT.pom
+    `-- maven-metadata-local.xml
+
+2 directories, 5 files
+
+
+```
+
+
+## How to build the jar + pom.xml and sign them
+
+```
+$ gradle clean signArchives signMavenJavaPublication
+```
+
+The `signArichives` task will create `build/libs/subprocessj-0.1.0-SNAPSHOT.jar.asc` file, which is the "digital signature" for the `build/libs/subprocessj-0.1.0-SNAPSHOT.jar` file.
+
+The `signMavenJavaPublication` task will create `build/publications/mavenJava/pom-default.xml.asc` file, which is the "digital signature" for the `build/publications/mavenJava/pom-default.xml` file.
+
+
+## I do not like "pom-default.xml", like "pom.xml". How can I change the name?
+
+
+## "gradle publishToMavenLocal" does not copy the `pom-default.xml` file and the `jar.asc` files. How can it make it?
+
+

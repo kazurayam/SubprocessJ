@@ -1,3 +1,17 @@
+/**
+ * As of Aug 2021, the Official Document (https://central.sonatype.org/publish/publish-gradle/) is old.
+ * I found a blog post
+ * https://dev.to/kengotoda/deploying-to-ossrh-with-gradle-in-2020-1lhi
+ * which saved me.
+ *
+ * How to deploy?
+ *
+ * $ gradle publishToMavenLocal
+ *
+ * $ gradle publish
+ *
+ */
+
 plugins {
     id 'java'
     id 'jacoco'
@@ -12,6 +26,8 @@ repositories {
 group = 'com.kazurayam'
 archivesBaseName = "subprocessj"
 version = '0.1.0-SNAPSHOT'
+
+ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -39,42 +55,25 @@ task copyJavadoc(type: Copy) {
 }
 javadoc.finalizedBy copyJavadoc
 
-task javadocJar(type: Jar) {
-    archiveClassifier = 'javadoc'
-    from javadoc
-}
-
-task sourcesJar(type: Jar) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 artifacts {
     archives javadocJar, sourcesJar
 }
 
-signing {
-    sign configurations.archives
-}
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'subprocessj'
-            from components.java
-            versionMapping {
-                usage('java-api') {
-                    fromResolutionOf('runtimeClasspath')
-                }
-                usage('java-runtime') {
-                    fromResolutionResult()
-                }
-            }
             pom {
-                name = 'subprocessj'
+                groupId = project.group
+                name = project.rootProject.name
                 description = 'an easy-to-use wrapper of java.lang.ProcessBuilder'
                 url = 'https://kazurayam.github.io/subprocessj/'
-                properties = [ "dummy.prop.with.dots": "value" ]
+                from components.java
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
@@ -89,67 +88,31 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'git@github.com:kazurayam/subprocessj.git'
-                    developerConnection = 'git@github.com:kazurayam/subprocessj.git'
-                    url = 'https://github.com/kazurayam/subprocessj'
+                    connection = "scm:git:https://github.com/kazurayam/${project.rootProject.name}.git"
+                    developerConnection = "scm:git:git@github.com:kazurayam/${project.rootProject.name}.git"
+                    url = "https://github.com/kazurayam/${project.rootProject.name}"
                 }
             }
         }
     }
     repositories {
         maven {
-            // change URLs to point to your repos, e.g. http://my.org/repo
-            def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
-            def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            def releaseRepo = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            url = isReleaseVersion ? releaseRepo: snapshotRepo
+            credentials {
+                username = project.hasProperty('ossrhUsername') ? ossrhUsername : "Unknown user"
+                password = project.hasProperty('ossrhPassword') ? ossrhPassword : "Unknown password"
+            }
         }
     }
 }
 
-
-/*
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.project {
-                name 'subprocessj'
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description 'A Java library which enables you to easily execute arbitrary OS command in a subprocess, and to get the command result: return code as int, STDOUT and STDERR as List of String.'
-                url 'https://github.com/kazurayam/subprocessj'
-
-                scm {
-                    connection 'scm:svn:https://github.com/kazurayam/subprocessj'
-                    developerConnection 'scm:svn:https://github.com/kazurayam/subprocessj'
-                    url 'https://github.com/kazurayam/subprocessj'
-                }
-
-                licenses {
-                    license {
-                        name 'The Apache License, Version 2.0'
-                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'kazurayam'
-                        name 'URAYAMA,kazuaki'
-                        email 'kazuaki.urayama@gmail.com'
-                    }
-                }
-            }
-        }
-    }
+signing {
+    sign publishing.publications.mavenJava
+}
+/* If I do not want to sign the SNAPSHOT, uncomment this part.
+tasks.withType(Sign) {
+    onlyIf { isReleaseVersion }
 }
  */
