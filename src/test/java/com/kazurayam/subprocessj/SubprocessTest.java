@@ -12,7 +12,7 @@ class SubprocessTest {
 
     @Test
     void test_ls() throws Exception {
-        CompletedProcess cp =
+        Subprocess.CompletedProcess cp =
                 new Subprocess()
                         .cwd(new File("."))
                         .run(Arrays.asList("sh", "-c", "ls")
@@ -26,7 +26,7 @@ class SubprocessTest {
 
     @Test
     void test_date() throws Exception {
-        CompletedProcess cp =
+        Subprocess.CompletedProcess cp =
                 new Subprocess().run(Arrays.asList("/bin/date"));
         assertEquals(0, cp.returncode());
         //println "stdout: ${cp.getStdout()}";
@@ -47,7 +47,7 @@ class SubprocessTest {
     @Disabled
     @Test
     void test_git() throws Exception {
-        CompletedProcess cp =
+        Subprocess.CompletedProcess cp =
                     new Subprocess()
                             .cwd(new File(System.getProperty("user.home")))
                             .run(Arrays.asList("/usr/local/bin/git", "status"));
@@ -67,7 +67,7 @@ class SubprocessTest {
     void test_demo() throws Exception {
         Subprocess subprocess = new Subprocess();
         subprocess.cwd(new File(System.getProperty("user.home")));
-        CompletedProcess cp = subprocess.run(Arrays.asList("ls", "-la", "."));
+        Subprocess.CompletedProcess cp = subprocess.run(Arrays.asList("ls", "-la", "."));
         System.out.println(cp.returncode());
         cp.stdout().forEach(System.out::println);
         cp.stderr().forEach(System.out::println);

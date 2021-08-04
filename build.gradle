@@ -8,8 +8,14 @@
  *
  * $ gradle publishToMavenLocal
  *
+ * or
+ *
  * $ gradle publish
  *
+ *
+ * Releasing...
+ *
+ * https://qiita.com/yutwoking/items/199b8a4fbe0c4a384dca
  */
 
 plugins {
