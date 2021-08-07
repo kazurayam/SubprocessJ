@@ -1,4 +1,4 @@
-Subprocess in Java
+subprocessj
 ====
 
 An instance of `com.kazurayam.subprocessj.Subprocess` class executes arbitrary OS command in a forked OS Process, waits for it to finish, returns an object that contains the return code as int, STDOUT and STDERR as List<String>.
@@ -17,6 +17,8 @@ Javadoc is [here](https://kazurayam.github.io/subprocessj/api/index.html).
 Subprocessj is available at [the Maven Central repository](https://mvnrepository.com/artifact/com.kazurayam/subprocessj)
 
 
-I wrote a memo to record gow I published the subprocessj artifacts to the Maven Central Repository. It is avaliable at:
+I wrote a memo to record how I published the subprocessj artifacts to the Maven Central Repository. It is avaliable at:
 
 - https://github.com/kazurayam/subprocessj_publishedToMavenCentral
+
+This memo is a private repository.
