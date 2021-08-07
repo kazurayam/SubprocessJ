@@ -1,21 +1,9 @@
 /**
- * As of Aug 2021, the Official Document (https://central.sonatype.org/publish/publish-gradle/) is old.
- * I found a blog post
- * https://dev.to/kengotoda/deploying-to-ossrh-with-gradle-in-2020-1lhi
- * which saved me.
+ * How to publish the subprocessj artifacts?
  *
- * How to deploy?
+ * $ gradle publish -Psigning.password=########
  *
- * $ gradle publishToMavenLocal
- *
- * or
- *
- * $ gradle publish
- *
- *
- * Releasing...
- *
- * https://qiita.com/yutwoking/items/199b8a4fbe0c4a384dca
+ * here ######## must be interpolated with the passphrase which is used to protect kazurayam's secret key
  */
 
 plugins {
@@ -32,6 +20,7 @@ repositories {
 group = 'com.kazurayam'
 archivesBaseName = "subprocessj"
 version = '0.1.0-SNAPSHOT'
+//version = '0.1.0'
 
 ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
@@ -114,11 +103,12 @@ publishing {
     }
 }
 
+
 signing {
     sign publishing.publications.mavenJava
 }
-/* If I do not want to sign the SNAPSHOT, uncomment this part.
+// I do not want to sign the SNAPSHOT
 tasks.withType(Sign) {
     onlyIf { isReleaseVersion }
 }
- */
+

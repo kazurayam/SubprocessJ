@@ -2,6 +2,10 @@
 
 You can execute arbitrary OS command using `com.kazurayam.subprocessj.Subprocess` in your Java application.
 
+Subprocessj is available at the Maven Central repository:
+
+- https://mvnrepository.com/artifact/com.kazurayam/subprocessj
+
 ### API
 
 Javadoc is [here](./api/index.html)
