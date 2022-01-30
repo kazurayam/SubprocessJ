@@ -11,10 +11,12 @@ plugins {
     id 'jacoco'
     id 'maven-publish'
     id 'signing'
+    id 'application'
 }
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 group = 'com.kazurayam'
@@ -32,12 +34,22 @@ tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+
+    // https://mvnrepository.com/artifact/com.beust/jcommander
+    testImplementation group: 'com.beust', name: 'jcommander', version: '1.82'
+    implementation group: 'com.kazurayam', name: 'chromedriverfactory', version: '0.6.4'
+}
+
+application {
+    mainClass = 'com.kazurayam.webdriverfactory.CookieServer'
 }
 
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
+
+
 
 javadoc {
     options.encoding = 'UTF-8'
