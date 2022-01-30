@@ -4,10 +4,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
@@ -21,9 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Make an HTTP request and check the response.
  * Shutdown the process of HiThereServer.
  */
-public class HiThereServerTest {
-
-    private static Process process;
+public class HiThereServerAsProcessTest {
 
     @BeforeAll
     static public void beforeAll() throws IOException, InterruptedException {
@@ -33,7 +28,7 @@ public class HiThereServerTest {
                 "com.kazurayam.subprocessj.HiThereServer"
         );
         ProcessBuilder pb = new ProcessBuilder(args);
-        process = pb.start();
+        Process process = pb.start();
         Thread.sleep(1000);
     }
 
@@ -41,31 +36,14 @@ public class HiThereServerTest {
     public void test_request_response() throws IOException {
         URL url = new URL("http://127.0.0.1:8500/");
         URLConnection conn = url.openConnection();
-        String content = readInputStream(conn.getInputStream());
+        String content = TestUtils.readInputStream(conn.getInputStream());
         assertEquals("Hi there!", content.trim());
     }
 
     @AfterAll
-    static public void afterAll() {
-        process.destroy();
+    static public void afterAll() throws IOException, InterruptedException {
+        Long processId = ProcessKiller.killProcessOnPort(8500);
     }
 
-    /**
-     *
-     * @param is
-     * @return
-     * @throws IOException
-     */
-    private static String readInputStream(InputStream is) throws IOException {
-        BufferedReader r =
-                new BufferedReader(new InputStreamReader(is));
-        String line;
-        StringBuilder sb = new StringBuilder();
-        while ((line = r.readLine()) != null) {
-            sb.append(line);
-            sb.append("\n");
-        }
-        return sb.toString();
-    }
 
 }

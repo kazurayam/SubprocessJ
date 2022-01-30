@@ -12,17 +12,17 @@ import java.io.InputStream;
 /**
  * https://www.ne.jp/asahi/hishidama/home/tech/java/process.html#Process
  */
-public class StreamGobbler extends Thread {
+public class InputStreamThread extends Thread {
 
     private BufferedReader br;
 
     private List<String> list = new ArrayList<>();
 
-    public StreamGobbler(InputStream is) {
+    public InputStreamThread(InputStream is) {
         this(is, StandardCharsets.UTF_8);
     }
 
-    public StreamGobbler(InputStream is, Charset charset) {
+    public InputStreamThread(InputStream is, Charset charset) {
         br = new BufferedReader(
                 new InputStreamReader(is, charset));
     }

@@ -1,7 +1,8 @@
 package hishidama.process;
 
-import hishidama.StreamGobbler;
+import hishidama.InputStreamThread;
 import hishidama.Util;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedWriter;
@@ -10,10 +11,29 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ProcessTest {
+
+    static Path projectDir;
+    static Path classOutputDir;
+
+    @BeforeAll
+    public static void beforeAll() throws IOException {
+        projectDir = Paths.get(".");
+        classOutputDir = projectDir.resolve("./build/tmp/testOutput/ProcessTest");
+        if (Files.exists(classOutputDir)) {
+            Files.walk(classOutputDir)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        }
+    }
 
     @Test
     public void test_process_waitFor() throws IOException, InterruptedException {
@@ -66,16 +86,16 @@ public class ProcessTest {
         Process process = pb.start();
 
         // start threads to consume output from the subprocess
-        StreamGobbler outGobbler = new StreamGobbler(process.getInputStream());
+        InputStreamThread outGobbler = new InputStreamThread(process.getInputStream());
         outGobbler.start();
 
-        StreamGobbler errGobbler = new StreamGobbler(process.getErrorStream());
+        InputStreamThread errGobbler = new InputStreamThread(process.getErrorStream());
         errGobbler.start();
 
         // wait for the subprocess to finish
         process.waitFor();
 
-        // wait for the threads to finshi consuming the outputs
+        // wait for the threads to finish consuming the outputs
         outGobbler.join();
         errGobbler.join();
 
@@ -94,5 +114,61 @@ public class ProcessTest {
             System.err.println(s);
         }
         System.err.println("[/STDERR]");
+    }
+
+    /**
+     * When you can not use Thread in your application,
+     * then the StreamGobbler does not help. In this case,
+     * redirecting STDOUT and STDERR from subprocess
+     * into files by SHELL operators `>` and `2>` may help.
+     */
+    @Test
+    void test_redirect() throws IOException, InterruptedException {
+        Path methodOutputDir = classOutputDir.resolve("test_redirect");
+        Files.createDirectories(methodOutputDir);
+        Path script = methodOutputDir.resolve("script.sh").normalize().toAbsolutePath();
+        Util.writeLine("javac -help", script);
+        Path stdoutFile = methodOutputDir.resolve("stdout.txt").normalize().toAbsolutePath();
+        Path stderrFile = methodOutputDir.resolve("stderr.txt").normalize().toAbsolutePath();
+        System.out.println(stdoutFile.toString());
+        System.err.println(stderrFile.toString());
+        List<String> args = Arrays.asList("/bin/sh",
+                script.toString(),
+                ">", stdoutFile.toString(),
+                "2>", stderrFile.toString()
+        );
+        System.out.println(args);
+        //
+        ProcessBuilder pb = new ProcessBuilder(args);
+        Process process = pb.start();
+
+        //Util.printProcessOutput("test_redirect", process);
+
+        // no need to consume stdout/stderr from the process
+
+        int ret = process.waitFor();
+        System.out.println("ret=" + ret);
+    }
+
+    @Test
+    void test_timeout() throws IOException, InterruptedException {
+        // startup com.kazurayam.subprocessj.HiThereServer
+        List<String> args = Arrays.asList(
+                "java",
+                "-cp", "build/classes/java/main",
+                "com.kazurayam.subprocessj.HiThereServer"
+        );
+        ProcessBuilder pb = new ProcessBuilder(args);
+        Process process = pb.start();
+        //
+        boolean end = process.waitFor(5, TimeUnit.SECONDS);
+        //
+        Util.printProcessOutput("test_timeout", process);
+        if (end) {
+            System.out.println("finished by timeout with ret=" + process.exitValue());
+        } else {
+            System.err.println("finished by timeout");
+        }
+        process.destroy();
     }
 }

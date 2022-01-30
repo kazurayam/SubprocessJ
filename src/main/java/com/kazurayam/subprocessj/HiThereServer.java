@@ -16,12 +16,24 @@ import java.net.InetSocketAddress;
  */
 public class HiThereServer {
 
-    public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(
+    private HttpServer server;
+
+    HiThereServer() throws IOException {
+        server = HttpServer.create(
                 new InetSocketAddress(8500), 0);
         HttpContext context = server.createContext("/");
         context.setHandler(HiThereServer::handleRequest);
         server.start();
+    }
+
+    void shutdown() {
+        if (server != null) {
+            server.stop(0);
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        HiThereServer server = new HiThereServer();
     }
 
     private static void handleRequest(HttpExchange exchange) throws IOException {

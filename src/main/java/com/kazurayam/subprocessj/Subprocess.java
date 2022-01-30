@@ -2,9 +2,9 @@ package com.kazurayam.subprocessj;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -163,26 +163,11 @@ public class Subprocess {
         }
     }
 
-    private static class StreamGobbler implements Callable<String> {
-        private final InputStream inputStream;
-        private final Consumer<String> consumer;
-        public StreamGobbler(InputStream inputStream,
-                      Consumer<String> consumer) {
-            this.inputStream = inputStream;
-            this.consumer = consumer;
-        }
-        @Override
-        public String call() {
-            new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
-            return "done";
-        }
-    }
-
     /**
      * A Data Transfer Object that contains the return code, STDOUT and STDERR
      * out of the executed subprocess.
      */
-    public static class CompletedProcess {
+    public static final class CompletedProcess {
 
         private final List<String> args;
         private int returncode;
@@ -231,5 +216,24 @@ public class Subprocess {
         }
     }
 
+    /**
+     *
+     */
+    public static final class StreamGobbler implements Callable<String> {
+        private final InputStream inputStream;
+        private final Consumer<String> consumer;
+
+        public StreamGobbler(InputStream inputStream,
+                             Consumer<String> consumer) {
+            this.inputStream = inputStream;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public String call() {
+            new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
+            return "done";
+        }
+    }
 }
 
