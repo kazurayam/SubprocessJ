@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,15 +66,4 @@ class SubprocessTest {
         );
     }
 
-    @Test
-    void test_demo() throws Exception {
-        Subprocess subprocess = new Subprocess();
-        subprocess.cwd(new File(System.getProperty("user.home")));
-        Subprocess.CompletedProcess cp = subprocess.run(Arrays.asList("ls", "-la", "."));
-        System.out.println(cp.returncode());
-        cp.stdout().forEach(System.out::println);
-        cp.stderr().forEach(System.out::println);
-        assertEquals(0, cp.returncode());
-        assertTrue(cp.stdout().size() > 0);
-    }
 }
