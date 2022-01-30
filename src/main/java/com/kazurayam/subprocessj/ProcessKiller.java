@@ -24,9 +24,10 @@ public class ProcessKiller {
     /**
      *
      * @param portNumber the IP port number on which the Process is hanging on; you want to kill that process.
-     * @return the ID of the process (>0) which is listening to the IP portNumber
+     * @return the ID of the process (&gt;0) which is listening to the IP portNumber
      * and therefore killed; returns -1 if the process was not found.
-     * @throws IOException, InterruptedException if failed to kill the process
+     * @throws IOException if failed to kill a OS process
+     * @throws InterruptedException if the process was interrupted
      */
     public static Long killProcessOnPort(Integer portNumber)
             throws IOException, InterruptedException
