@@ -2,7 +2,9 @@
 
 -   back to [the repository](https://github.com/kazurayam/subprocessj/)
 
-Using `com.kazurayam.subprocessj.Subprocess` you can execute arbitrary OS command in your Java application. Using `com.kazurayam.subprocessj.ProcessKiller` you can stop a server process which is listening to a specific IP port.
+    1.  You can execute arbitrary OS command in your Java application using `com.kazurayam.subprocessj.Subprocess`.
+
+    2.  You can stop a server process which is listening to a specific IP port using `com.kazurayam.subprocessj.ProcessKiller`.
 
 The artifact is available at the Maven Central repository:
 
