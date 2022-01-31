@@ -1,10 +1,3 @@
--   [subprocessj](#_subprocessj)
-    -   [Motivation](#_motivation)
-    -   [API](#_api)
-    -   [Example](#_example)
-        -   [Running a process](#_running_a_process)
-        -   [Stopping a process](#_stopping_a_process)
-
 # subprocessj
 
 Using `com.kazurayam.subprocessj.Subprocess` you can execute arbitrary OS command in your Java application. Using `com.kazurayam.subprocessj.ProcessKiller` you can stop a server process which is listening to an IP port.
