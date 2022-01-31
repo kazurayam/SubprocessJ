@@ -1,13 +1,10 @@
 = subprocessj
 
-* back to https://github.com/kazurayam/subprocessj/[the repository]
+== What is this?
 
 1. You can execute arbitrary OS command in your Java application using `com.kazurayam.subprocessj.Subprocess`.
 2. You can stop a server process which is listening to a specific IP port using `com.kazurayam.subprocessj.ProcessKiller`.
 
-The artifact is available at the Maven Central repository:
-
-* link:https://mvnrepository.com/artifact/com.kazurayam/subprocessj[https://mvnrepository.com/artifact/com.kazurayam/subprocessj]
 
 == Motivation
 
@@ -67,3 +64,12 @@ include::../src/test/java/com/kazurayam/subprocessj/HiThereServerAsProcessTest.j
 
 @AfterAll-annotated method shuts down the HiThereServer using the `ProcessKiller`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
 
+== links
+
+The artifact is available at the Maven Central repository:
+
+* link:https://mvnrepository.com/artifact/com.kazurayam/subprocessj[https://mvnrepository.com/artifact/com.kazurayam/subprocessj]
+
+The project's repository is here
+
+* https://github.com/kazurayam/subprocessj/[the repository]
