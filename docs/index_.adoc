@@ -16,7 +16,7 @@ I named this as `subprocjessj` as I meant it to be a homage to the https://docs.
 
 == API
 
-Javadoc is link:api/index.html[here].
+Javadoc is https://kazurayam.github.io/subprocessj/api/index.html[here].
 
 == Example
 
