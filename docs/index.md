@@ -16,7 +16,7 @@ I named this as `subprocjessj` as I meant it to be a homage to the [Subprocess](
 
 ## API
 
-Javadoc is [here](api/index.html).
+Javadoc is [here](https://kazurayam.github.io/subprocessj/api/index.html).
 
 ## Example
 
@@ -106,11 +106,13 @@ This will emit the following output in the console:
 
 Using `java.lang.ProcessBuilder` class, you can create an `java.lang.Process` in which arbitrary application can run. Suppose you created a process in which a HTTP Server runs. The process will stay running long until you explicitly stop it. But how can you stop that process?
 
-Sometimes I encounter a new HTTP Server fails to start because the IP port is already in use. It tends to happen because I am not careful enough to stop the previous server process. Sometimes I failed to stop the server. The process is left running and hangs on a process, which I started by \`java.lang.Proces the IP port number. In such situation, I have to do the following operation on Mac.
+Sometimes I encounter a new HTTP Server fails to start because the IP port is already in use. It tends to happen because I am not careful enough to stop the previous server process which is hanging on the IP port. In such situation, I have to do, on Mac, the following operations:
 
 1.  execute a shell command `$ lsof -i:<port> -P`, to find out the id of the process which is still hanging on the IP port.
 
-2.  execute a shell command `$ kill <processId>`, to stop the process and relase the IP port.
+2.  execute a shell command `$ kill <processId>`, to stop the process.
+
+3.  once the process is stopped, the IP port is released.
 
 I wanted to automate this command line operation in my Java code. So I developed a Java class [`com.kazurayam.subprocessj.ProcessKiller`](../src/main/java/com/kazurayam/subprocessj/ProcessKiller.java).
 
