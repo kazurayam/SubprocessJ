@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class ProcessKillerTest {
 
     HiThereServer server = null;
@@ -44,4 +46,5 @@ public class ProcessKillerTest {
         Long processId = ProcessKiller.killProcessOnPort(8500);
         assert processId > 0;
     }
+
 }

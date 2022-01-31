@@ -29,7 +29,6 @@ public class HiThereServerAsProcessTest {
         );
         ProcessBuilder pb = new ProcessBuilder(args);
         Process process = pb.start();
-        Thread.sleep(1000);
     }
 
     @Test

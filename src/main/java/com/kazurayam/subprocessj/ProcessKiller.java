@@ -14,7 +14,7 @@ import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
  *
  * So I will use `lsof -i:portNumber -P` command on Mac
  *
- * on Winodws? TODO later
+ * on Windows? TODO later
  *
  */
 public class ProcessKiller {
@@ -105,9 +105,6 @@ java    4830 kazuakiurayama    6u  IPv6 0xce0db8744e9dc403      0t0  TCP *:8500 
             cp.stdout().forEach(System.out::println);
             return -1L;
         }
-
-
     }
-
 }
 

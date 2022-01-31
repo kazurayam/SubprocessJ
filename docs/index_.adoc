@@ -1,0 +1,65 @@
+= subprocessj
+
+Using `com.kazurayam.subprocessj.Subprocess` you can execute arbitrary OS command in your Java application. Using `com.kazurayam.subprocessj.ProcessKiller` you can stop a server process which is listening to an IP port.
+
+The artifact is available at the Maven Central repository:
+
+* link:https://mvnrepository.com/artifact/com.kazurayam/subprocessj[https://mvnrepository.com/artifact/com.kazurayam/subprocessj]
+
+== Motivation
+
+There are many articles that tell how to use https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html[`java.lang.ProcessBuilder`]. For example, I learned https://www.baeldung.com/run-shell-command-in-java["Baeldung article: Run Shell Command in Java"]. The ProcessBuilder class is a state of the art with rich set of functionalities. But for me it is not very easy to write a program that utilized ProcessBuilder. It involves multi-threading to consume the output streams (STDOUT and STDERR) from subprocess. I do not want to repeat writing it.
+
+So I have made a simple wrapper of ProcessBuilder which exposes a limited subset of its functionalities.
+
+I named this as `subprocjessj` as I meant it to be a homage to the https://docs.python.org/3/library/subprocess.html[Subprocess] module of Python.
+
+== API
+
+Javadoc is link:api/index.html[here].
+
+== Example
+
+=== Running a process
+
+You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. The `run()` will wait for the sub-process to finish, and returns a `com.kazurayam.subprocessj.CompletedProcess` object which contains the return code, STDOUT and STDERR emitted by the sub-process.
+
+[source, java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/SubprocessTest.java[]
+----
+
+This will emit the following output in the console:
+
+----
+0
+total 4712
+drwxr-xr-x+  90 kazurayam       staff     2880  7 31 21:01 .
+drwxr-xr-x    6 root            admin      192  1  1  2020 ..
+...
+----
+
+=== Stopping a process
+
+Using `java.lang.ProcessBuilder` class, you can create an `java.lang.Process` in which arbitrary application can run. Suppose you created a process in which a HTTP Server runs. The process will stay running long until you explicitly stop it. But how can you stop that process?
+
+Sometimes I encounter a new HTTP Server fails to start because the IP port is already in use. It tends to happen because I am not careful enough to stop the previous server process. Sometimes I failed to stop the server. The process is left running and hangs on a process, which I started by `java.lang.Proces the IP port number. In such situation, I have to do the following operation on Mac.
+
+1. execute a shell command `$ lsof -i:<port> -P`, to find out the id of the process which is still hanging on the IP port.
+2. execute a shell command `$ kill <processId>`, to stop the process and relase the IP port.
+
+I wanted to automate this command line operation in my Java code. So I developed a Java class link:../src/main/java/com/kazurayam/subprocessj/ProcessKiller.java[`com.kazurayam.subprocessj.ProcessKiller`].
+
+See the following sample JUnit 5 test to see how to use the ProcessKiller.
+
+[source, java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/HiThereServerAsProcessTest.java[]
+----
+
+@BeforeAll-annotated method starts the link:../src/main/java/com/kazurayam/subprocessj/HiThereServer.java[HiThereServer] using `ProcessBuilder`. The process will start and stay running background. The HiThereServer is a simple HTTP server, listens to the IP port 8500.
+
+@Test-annoted method makes an HTTP request to the HiThereServer.
+
+@AfterAll-annotated method shuts down the HiThereServer using the `ProcessKiller`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
+
