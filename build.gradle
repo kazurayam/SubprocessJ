@@ -20,7 +20,7 @@ repositories {
 
 group = 'com.kazurayam'
 archivesBaseName = "subprocessj"
-version = '0.2.0'
+version = '0.2.1-SNAPSHOT'
 
 ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
@@ -37,6 +37,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    maxParallelForks = 2
     finalizedBy jacocoTestReport
 }
 
