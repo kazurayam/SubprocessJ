@@ -4,7 +4,7 @@
 
 1.  You can execute arbitrary OS command in your Java application using `com.kazurayam.subprocessj.Subprocess`.
 
-2.  You can stop a server process which is listening to a specific IP port using `com.kazurayam.subprocessj.ProcessTerminator`.
+2.  You can stop a server process which is listening to a specific IP port using `ProcessTerminator`.
 
 ## Motivation
 
@@ -114,7 +114,7 @@ Sometimes I encounter a new HTTP Server fails to start because the IP port is al
 
 3.  once the process is stopped, the IP port is released.
 
-I wanted to automate this command line operation in my Java code. So I developed a Java class [`com.kazurayam.subprocessj.ProcessTerminator`](../src/main/java/com/kazurayam/subprocessj/ProcessKiller.java).
+I wanted to automate this command line operation in my Java code. So I developed a Java class [`com.kazurayam.subprocessj.ProcessTerminator`](../src/main/java/com/kazurayam/subprocessj/ProcessTerminator.java).
 
 See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
@@ -122,6 +122,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
     import org.junit.jupiter.api.AfterAll;
     import org.junit.jupiter.api.BeforeAll;
+    import org.junit.jupiter.api.Disabled;
     import org.junit.jupiter.api.Test;
 
     import java.io.IOException;
@@ -129,8 +130,8 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     import java.net.URLConnection;
     import java.util.Arrays;
     import java.util.List;
-
-    import static org.junit.jupiter.api.Assertions.assertEquals;
+    import com.kazurayam.subprocessj.ProcessTerminator.TerminationResult;
+    import static org.junit.jupiter.api.Assertions.assertTrue;
 
     /**
      * Start up a process in which HiThereServer runs on background,
@@ -149,6 +150,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             );
             ProcessBuilder pb = new ProcessBuilder(args);
             Process process = pb.start();
+            Thread.sleep(1000);  // wait for the process to boot successfully
         }
 
         @Test
@@ -156,12 +158,13 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             URL url = new URL("http://127.0.0.1:8500/");
             URLConnection conn = url.openConnection();
             String content = TestUtils.readInputStream(conn.getInputStream());
-            assertEquals("Hi there!", content.trim());
+            assertTrue(content.contains("Hi there!"));
         }
 
         @AfterAll
         static public void afterAll() throws IOException, InterruptedException {
-            Long processId = ProcessKiller.killProcessOnPort(8500);
+            TerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
+            assert tr.returncode() == 0;
         }
 
 
@@ -171,7 +174,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
 @Test-annoted method makes an HTTP request to the HiThereServer.
 
-@AfterAll-annotated method shuts down the HiThereServer using the `ProcessKiller`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
+@AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
 
 ## links
 
