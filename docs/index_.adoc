@@ -3,7 +3,7 @@
 == What is this?
 
 1. You can execute arbitrary OS command in your Java application using `com.kazurayam.subprocessj.Subprocess`.
-2. You can stop a server process which is listening to a specific IP port using `com.kazurayam.subprocessj.ProcessKiller`.
+2. You can stop a server process which is listening to a specific IP port using `ProcessTerminator`.
 
 
 == Motivation
@@ -49,7 +49,7 @@ Sometimes I encounter a new HTTP Server fails to start because the IP port is al
 2. execute a shell command `$ kill <processId>`, to stop the process.
 3. once the process is stopped, the IP port is released.
 
-I wanted to automate this command line operation in my Java code. So I developed a Java class link:../src/main/java/com/kazurayam/subprocessj/ProcessKiller.java[`com.kazurayam.subprocessj.ProcessKiller`].
+I wanted to automate this command line operation in my Java code. So I developed a Java class link:../src/main/java/com/kazurayam/subprocessj/ProcessKiller.java[`com.kazurayam.subprocessj.ProcessTerminator`].
 
 See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
@@ -62,7 +62,7 @@ include::../src/test/java/com/kazurayam/subprocessj/HiThereServerAsProcessTest.j
 
 @Test-annoted method makes an HTTP request to the HiThereServer.
 
-@AfterAll-annotated method shuts down the HiThereServer using the `ProcessKiller`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
+@AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
 
 == links
 

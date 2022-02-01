@@ -177,19 +177,19 @@ public class Subprocess {
         public CompletedProcess(List<String> args) {
             this.args = args;
             this.returncode = -999;
-            this.stdout = new ArrayList<String>();
-            this.stderr = new ArrayList<String>();
+            this.stdout = new ArrayList<>();
+            this.stderr = new ArrayList<>();
         }
 
-        protected void appendStdout(String line) {
+        void appendStdout(String line) {
             stdout.add(line);
         }
 
-        protected void appendStderr(String line) {
+        void appendStderr(String line) {
             stderr.add(line);
         }
 
-        protected void setReturnCode(int v) {
+        void setReturnCode(int v) {
             this.returncode = v;
         }
 

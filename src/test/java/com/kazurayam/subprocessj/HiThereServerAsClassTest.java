@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 public class HiThereServerAsClassTest {
 
     private static HiThereServer server;
@@ -17,6 +15,7 @@ public class HiThereServerAsClassTest {
     @BeforeAll
     static public void beforeAll() throws IOException, InterruptedException {
         server = new HiThereServer();
+        server.startup();
     }
 
     @Test

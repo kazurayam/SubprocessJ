@@ -2,6 +2,7 @@ package com.kazurayam.subprocessj;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -9,8 +10,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.kazurayam.subprocessj.ProcessTerminator.TerminationResult;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Start up a process in which HiThereServer runs on background,
@@ -29,6 +30,7 @@ public class HiThereServerAsProcessTest {
         );
         ProcessBuilder pb = new ProcessBuilder(args);
         Process process = pb.start();
+        Thread.sleep(1000);  // wait for the process to boot successfully
     }
 
     @Test
@@ -36,12 +38,13 @@ public class HiThereServerAsProcessTest {
         URL url = new URL("http://127.0.0.1:8500/");
         URLConnection conn = url.openConnection();
         String content = TestUtils.readInputStream(conn.getInputStream());
-        assertEquals("Hi there!", content.trim());
+        assertTrue(content.contains("Hi there!"));
     }
 
     @AfterAll
     static public void afterAll() throws IOException, InterruptedException {
-        Long processId = ProcessKiller.killProcessOnPort(8500);
+        TerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
+        assert tr.returncode() == 0;
     }
 
 

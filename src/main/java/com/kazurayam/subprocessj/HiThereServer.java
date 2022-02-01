@@ -18,10 +18,22 @@ import java.util.Arrays;
 public class HiThereServer {
 
     private HttpServer server;
+    private int port;
 
     HiThereServer() throws IOException {
+        port = 8500;
+    }
+
+    void setPort(int port) {
+        if (port != 80 && port < 1024) {
+            throw new IllegalArgumentException("IP port#" + port + " is not allowed");
+        }
+        this.port = port;
+    }
+
+    void startup() throws IOException{
         server = HttpServer.create(
-                new InetSocketAddress(8500), 0);
+                new InetSocketAddress(this.port), 0);
         HttpContext context = server.createContext("/");
         context.setHandler(HiThereServer::handleRequest);
         server.start();
@@ -35,6 +47,7 @@ public class HiThereServer {
 
     public static void main(String[] args) throws IOException {
         HiThereServer server = new HiThereServer();
+        server.startup();
     }
 
     private static void handleRequest(HttpExchange exchange) throws IOException {

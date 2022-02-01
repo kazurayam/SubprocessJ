@@ -4,7 +4,7 @@
 
 1.  You can execute arbitrary OS command in your Java application using `com.kazurayam.subprocessj.Subprocess`.
 
-2.  You can stop a server process which is listening to a specific IP port using `com.kazurayam.subprocessj.ProcessKiller`.
+2.  You can stop a server process which is listening to a specific IP port using `com.kazurayam.subprocessj.ProcessTerminator`.
 
 ## Motivation
 
@@ -114,7 +114,7 @@ Sometimes I encounter a new HTTP Server fails to start because the IP port is al
 
 3.  once the process is stopped, the IP port is released.
 
-I wanted to automate this command line operation in my Java code. So I developed a Java class [`com.kazurayam.subprocessj.ProcessKiller`](../src/main/java/com/kazurayam/subprocessj/ProcessKiller.java).
+I wanted to automate this command line operation in my Java code. So I developed a Java class [`com.kazurayam.subprocessj.ProcessTerminator`](../src/main/java/com/kazurayam/subprocessj/ProcessKiller.java).
 
 See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
