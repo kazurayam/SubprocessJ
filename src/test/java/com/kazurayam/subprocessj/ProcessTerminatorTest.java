@@ -23,7 +23,7 @@ public class ProcessTerminatorTest {
         );
         ProcessBuilder pb = new ProcessBuilder(args);
         Process process = pb.start();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
     }
 
 
@@ -50,7 +50,7 @@ public class ProcessTerminatorTest {
                 System.err.println("fr.returncode:" + tr.getFindingResult().get().returncode());
             }
         }
-        assertEquals(0, tr.returncode());
+        assertEquals(0, tr.returncode(), tr.message());
     }
 
 }

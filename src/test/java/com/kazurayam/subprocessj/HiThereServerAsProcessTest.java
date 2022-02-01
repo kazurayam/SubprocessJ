@@ -30,7 +30,7 @@ public class HiThereServerAsProcessTest {
         );
         ProcessBuilder pb = new ProcessBuilder(args);
         Process process = pb.start();
-        Thread.sleep(1000);  // wait for the process to boot successfully
+        Thread.sleep(2000);  // wait for the process to boot successfully
     }
 
     @Test
