@@ -32,6 +32,10 @@ public class ProcessFinder {
      * listening to the port. This will use OS-dependent commands, for example
      * `lsof -i:portNumber -P` on Mac and Linux.
      *
+     * @param port IP port
+     * @return FindingResult includes returncode
+     * @throws InterruptedException when the subprosess was interrupted
+     * @throws IOException when the subprocess failed
      */
     public static FindingResult findPidByListeningPort(int port)
             throws IOException, InterruptedException

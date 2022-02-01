@@ -49,7 +49,7 @@ Sometimes I encounter a new HTTP Server fails to start because the IP port is al
 2. execute a shell command `$ kill <processId>`, to stop the process.
 3. once the process is stopped, the IP port is released.
 
-I wanted to automate this command line operation in my Java code. So I developed a Java class link:../src/main/java/com/kazurayam/subprocessj/ProcessKiller.java[`com.kazurayam.subprocessj.ProcessTerminator`].
+I wanted to automate this command line operation in my Java code. So I developed a Java class link:../src/main/java/com/kazurayam/subprocessj/ProcessTerminator.java[`com.kazurayam.subprocessj.ProcessTerminator`].
 
 See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
