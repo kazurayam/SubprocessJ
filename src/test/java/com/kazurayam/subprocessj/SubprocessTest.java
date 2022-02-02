@@ -14,33 +14,37 @@ import static org.junit.jupiter.api.Assertions.*;
 class SubprocessTest {
 
     @Test
-    void test_ls() throws Exception {
-        Subprocess.CompletedProcess cp =
-                new Subprocess()
-                        .cwd(new File("."))
-                        .run(Arrays.asList("sh", "-c", "ls")
-                        );
+    void test_list() throws Exception {
+        Subprocess.CompletedProcess cp;
+        if (OSType.isMac() || OSType.isUnix()) {
+            cp = new Subprocess().cwd(new File("."))
+                    .run(Arrays.asList("sh", "-c", "ls")
+                    );
+        } else {
+            cp = new Subprocess().cwd(new File("."))
+                    .run(Arrays.asList("cmd.exe", "/C", "dir")
+                    );
+        }
         assertEquals(0, cp.returncode());
-        //println "stdout: ${cp.getStdout()}";
-        //println "stderr: ${cp.getStderr()}";
         assertTrue(cp.stdout().size() > 0);
-        assertTrue(cp.stdout().contains("src"));
+        cp.stdout().forEach(System.out::println);
+        cp.stderr().forEach(System.err::println);
+        assertTrue(cp.stdout().toString().contains("src"));
     }
 
     @Test
     void test_date() throws Exception {
-        Subprocess.CompletedProcess cp =
-                new Subprocess().run(Arrays.asList("/bin/date"));
+        Subprocess.CompletedProcess cp;
+        if (OSType.isMac() || OSType.isUnix()) {
+            cp = new Subprocess().run(Arrays.asList("/bin/date"));
+        } else {
+            // I could not find out how to execute "date" command on Windows.
+            cp = new Subprocess().run(Arrays.asList("java", "-version"));
+        }
         assertEquals(0, cp.returncode());
-        //println "stdout: ${cp.getStdout()}";
-        //println "stderr: ${cp.getStderr()}";
-        assertTrue(cp.stdout().size() > 0);
-        /*
-        assertTrue(cp.getStdout().stream()
-                .filter { line ->
-                    line.contains("2021")
-                }.collect(Collectors.toList()).size() > 0)
-         */
+        cp.stdout().forEach(System.out::println);
+        cp.stderr().forEach(System.err::println);
+        assertTrue(cp.stdout().size() > 0 || cp.stderr().size() > 0);
     }
 
     /**
