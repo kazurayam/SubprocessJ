@@ -9,6 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class CommandFinderTest {
 
+    /**
+     * The returned value depends on the runtime environment.
+     *
+     * On Mac, this will return
+     * <PRE>/usr/local/bin/git</PRE>
+     *
+     * On Windows, may be if the "Git for Windows" is installed.
+     * If not, it will return rc=-1.
+     */
     @Test
     void test_find_git_is_found() {
         CommandFindingResult cfr = CommandFinder.find("git");
@@ -16,6 +25,9 @@ public class CommandFinderTest {
         assertEquals(0, cfr.returncode());
     }
 
+    /**
+     * just an alias to find(String command)
+     */
     @Test
     void test_which_git() {
         CommandFindingResult cfr = CommandFinder.which("git");
@@ -23,6 +35,9 @@ public class CommandFinderTest {
         assertEquals(0, cfr.returncode());
     }
 
+    /**
+     * one more alias to find(String command)
+     */
     @Test
     void test_where_git() {
         CommandFindingResult cfr = CommandFinder.where("git");
@@ -31,7 +46,7 @@ public class CommandFinderTest {
     }
 
     /**
-     * The "tig" command is expected not to be there
+     * The "tiger" command is expected NOT to be there
      */
     @Test
     void test_find_tiger_not_exists() {

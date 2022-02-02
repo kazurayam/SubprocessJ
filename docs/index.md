@@ -147,7 +147,6 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
     import org.junit.jupiter.api.AfterAll;
     import org.junit.jupiter.api.BeforeAll;
-    import org.junit.jupiter.api.Disabled;
     import org.junit.jupiter.api.Test;
 
     import java.io.IOException;
@@ -175,7 +174,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             );
             ProcessBuilder pb = new ProcessBuilder(args);
             Process process = pb.start();
-            Thread.sleep(1000);  // wait for the process to boot successfully
+            Thread.sleep(2000);  // wait for the process to boot successfully
         }
 
         @Test
@@ -201,9 +200,91 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
 @AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
 
+### Finding the path of a command
+
+    package com.kazurayam.subprocessj;
+
+    import org.junit.jupiter.api.Disabled;
+    import org.junit.jupiter.api.Test;
+    import com.kazurayam.subprocessj.CommandFinder.CommandFindingResult;
+
+    import static org.junit.jupiter.api.Assertions.assertEquals;
+    import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+    public class CommandFinderTest {
+
+        /**
+         * The returned value depends on the runtime environment.
+         *
+         * On Mac, this will return
+         * <PRE>/usr/local/bin/git</PRE>
+         *
+         * On Windows, may be if the "Git for Windows" is installed.
+         * If not, it will return rc=-1.
+         */
+        @Test
+        void test_find_git_is_found() {
+            CommandFindingResult cfr = CommandFinder.find("git");
+            printCFR("test_find_git_is_found", cfr);
+            assertEquals(0, cfr.returncode());
+        }
+
+        /**
+         * just an alias to find(String command)
+         */
+        @Test
+        void test_which_git() {
+            CommandFindingResult cfr = CommandFinder.which("git");
+            printCFR("test_which_git", cfr);
+            assertEquals(0, cfr.returncode());
+        }
+
+        /**
+         * one more alias to find(String command)
+         */
+        @Test
+        void test_where_git() {
+            CommandFindingResult cfr = CommandFinder.where("git");
+            printCFR("test_where_git", cfr);
+            assertEquals(0, cfr.returncode());
+        }
+
+        /**
+         * The "tiger" command is expected NOT to be there
+         */
+        @Test
+        void test_find_tiger_not_exists() {
+            CommandFindingResult cfr = CommandFinder.find("tiger");
+            printCFR("test_find_tiger_not_exists", cfr);
+            assertNotEquals(0, cfr.returncode());
+        }
+
+        /**
+         * On Windows, the "date" command is implemented as a sub-command of cmd.exe.
+         * So CommandFinder.find("date") will return non-zero, no Path found.
+         *
+         * NO.
+         * If you have Git Bash installed, you will have "C:\\Program Files\\Git\\usr\\bin\\date.exe
+         */
+        @Disabled
+        @Test
+        void test_find_date_on_Windows() {
+            if (OSType.isWindows()) {
+                CommandFindingResult cfr = CommandFinder.where("date");
+                printCFR("test_find_date_on_Windows", cfr);
+                assertEquals(0, cfr.returncode());
+            }
+        }
+
+        private void printCFR(String label, CommandFindingResult cfr) {
+            System.out.println("-------- " + label + " --------");
+            System.out.println(cfr.toString());
+        }
+    }
+
 ### Finding process id
 
-#### Finding pid of the current JVM
+#### Finding the pid of the current JVM
 
     package com.kazurayam.subprocessj;
 
@@ -213,6 +294,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
     public class ProcessFinderTest_CurrentJvmPid {
 
+
         @Test
         void test_getCurrentJvmPid() {
             long jvmProcessId = ProcessFinder.findCurrentJvmPid();
@@ -221,7 +303,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
     }
 
-#### Fnding pid which is listening to a specific IP port
+#### Finding the pid of a process which is listening to a specific IP port
 
     package com.kazurayam.subprocessj;
 
@@ -253,9 +335,13 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             server.shutdown();
         }
 
+        /**
+         * For example, this will show `1916` as the pid.
+         */
         @Test
         void test_findProcessIdByListeningPort_found() {
             ProcessFindingResult pfr = ProcessFinder.findPidByListeningPort(PORT);
+            System.out.println(pfr.processId());
             printPFR("test_findProcessIdByListeningPort_found", pfr);
             assertEquals(0, pfr.returncode(), pfr.message());
             assertTrue(pfr.processId() > 0);

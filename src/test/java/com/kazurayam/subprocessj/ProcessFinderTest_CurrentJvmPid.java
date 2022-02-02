@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ProcessFinderTest_CurrentJvmPid {
 
+
     @Test
     void test_getCurrentJvmPid() {
         long jvmProcessId = ProcessFinder.findCurrentJvmPid();

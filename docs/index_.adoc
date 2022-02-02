@@ -81,16 +81,23 @@ include::../src/test/java/com/kazurayam/subprocessj/HiThereServerAsProcessTest.j
 
 @AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
 
+=== Finding the path of a command
+
+[source,java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/CommandFinderTest.java[]
+----
+
 === Finding process id
 
-==== Finding pid of the current JVM
+==== Finding the pid of the current JVM
 
 [source,java]
 ----
 include::../src/test/java/com/kazurayam/subprocessj/ProcessFinderTest_CurrentJvmPid.java[]
 ----
 
-==== Fnding pid which is listening to a specific IP port
+==== Finding the pid of a process which is listening to a specific IP port
 
 [source,java]
 ----

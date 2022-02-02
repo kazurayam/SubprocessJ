@@ -28,9 +28,13 @@ public class ProcessFinderTest_base {
         server.shutdown();
     }
 
+    /**
+     * For example, this will show `1916` as the pid.
+     */
     @Test
     void test_findProcessIdByListeningPort_found() {
         ProcessFindingResult pfr = ProcessFinder.findPidByListeningPort(PORT);
+        System.out.println(pfr.processId());
         printPFR("test_findProcessIdByListeningPort_found", pfr);
         assertEquals(0, pfr.returncode(), pfr.message());
         assertTrue(pfr.processId() > 0);
