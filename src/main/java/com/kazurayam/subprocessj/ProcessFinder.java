@@ -39,8 +39,6 @@ public class ProcessFinder {
      *
      * @param port IP port
      * @return FindingResult includes returncode
-     * @throws InterruptedException when the subprosess was interrupted
-     * @throws IOException when the subprocess failed
      */
     public static ProcessFindingResult findPidByListeningPort(int port) {
         ProcessFindingResult pfr = new ProcessFindingResult(OSType.getOSType(), port);
@@ -157,8 +155,8 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
      *
      *     protocol    local-address          exteria-address        state     process-id
      *
-     * @param port
-     * @return
+     * @param port IP port
+     * @return a String as a Regular Expression pattern
      */
     public static String makeRegexForFilteringWindowsNetstatOutput(int port) {
         return "\\s*TCP\\s+(([\\d\\.]+):(" + String.valueOf(port) + "))\\s+(([\\d\\.]+):(\\d+))\\s+(LISTENING)\\s+(\\d+)\\s*";
