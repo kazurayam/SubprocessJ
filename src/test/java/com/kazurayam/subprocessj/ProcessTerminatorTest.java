@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import com.kazurayam.subprocessj.ProcessTerminator.TerminationResult;
+import com.kazurayam.subprocessj.ProcessTerminator.ProcessTerminationResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,9 +30,9 @@ public class ProcessTerminatorTest {
     @Test
     public void test_killProcessByPid()
             throws IOException, InterruptedException {
-        ProcessFinder.FindingResult fr = ProcessFinder.findPidByListeningPort(PORT);
+        ProcessFinder.ProcessFindingResult fr = ProcessFinder.findPidByListeningPort(PORT);
         if (fr.returncode() == 0) {
-            TerminationResult tr = ProcessTerminator.killProcessByPid(fr);
+            ProcessTerminationResult tr = ProcessTerminator.killProcessByPid(fr);
             assertEquals(0, tr.returncode());
         }
     }
@@ -41,13 +41,13 @@ public class ProcessTerminatorTest {
     public void test_killProcessOnPort()
             throws IOException, InterruptedException
     {
-        TerminationResult tr = ProcessTerminator.killProcessOnPort(PORT);
+        ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(PORT);
         if (tr.returncode() != 0) {
             System.err.println("tr.message:" + tr.message());
             System.err.println("tr.returncode:" + tr.returncode());
-            if (tr.getFindingResult().isPresent()) {
-                System.err.println("fr.message:" + tr.getFindingResult().get().message());
-                System.err.println("fr.returncode:" + tr.getFindingResult().get().returncode());
+            if (tr.getProcessFindingResult().isPresent()) {
+                System.err.println("fr.message:" + tr.getProcessFindingResult().get().message());
+                System.err.println("fr.returncode:" + tr.getProcessFindingResult().get().returncode());
             }
         }
         assertEquals(0, tr.returncode());

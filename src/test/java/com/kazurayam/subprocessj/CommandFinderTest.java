@@ -1,5 +1,6 @@
 package com.kazurayam.subprocessj;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import com.kazurayam.subprocessj.CommandFinder.CommandFindingResult;
 
@@ -33,22 +34,26 @@ public class CommandFinderTest {
      * The "tig" command is expected not to be there
      */
     @Test
-    void test_find_tig_not_exists() {
-        CommandFindingResult cfr = CommandFinder.find("tig");
-        printCFR("test_find_tig_not_exists", cfr);
+    void test_find_tiger_not_exists() {
+        CommandFindingResult cfr = CommandFinder.find("tiger");
+        printCFR("test_find_tiger_not_exists", cfr);
         assertNotEquals(0, cfr.returncode());
     }
 
     /**
      * On Windows, the "date" command is implemented as a sub-command of cmd.exe.
      * So CommandFinder.find("date") will return non-zero, no Path found.
+     *
+     * NO.
+     * If you have Git Bash installed, you will have "C:\\Program Files\\Git\\usr\\bin\\date.exe
      */
+    @Disabled
     @Test
     void test_find_date_on_Windows() {
         if (OSType.isWindows()) {
             CommandFindingResult cfr = CommandFinder.where("date");
             printCFR("test_find_date_on_Windows", cfr);
-            assertNotEquals(0, cfr.returncode());
+            assertEquals(0, cfr.returncode());
         }
     }
 

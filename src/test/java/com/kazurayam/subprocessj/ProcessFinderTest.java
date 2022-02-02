@@ -8,11 +8,11 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.kazurayam.subprocessj.ProcessFinder.FindingResult;
+import com.kazurayam.subprocessj.ProcessFinder.ProcessFindingResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProcessIdentifierTest {
+public class ProcessFinderTest {
 
     private static HiThereServer server;
     private static final int PORT = 8090;
@@ -42,7 +42,7 @@ public class ProcessIdentifierTest {
      */
     @Test
     void look_for_pic_listening_to_8500() throws IOException, InterruptedException{
-        FindingResult result = ProcessFinder.findPidByListeningPort(8500);
+        ProcessFindingResult result = ProcessFinder.findPidByListeningPort(8500);
         if (result.returncode() == 0) {
             System.out.println("pid=" + result.processId() + " listening to the port 8500");
         } else {
@@ -54,7 +54,7 @@ public class ProcessIdentifierTest {
     void test_findProcessIdByListeningPort_found()
             throws IOException, InterruptedException
     {
-        FindingResult result = ProcessFinder.findPidByListeningPort(PORT);
+        ProcessFindingResult result = ProcessFinder.findPidByListeningPort(PORT);
         System.out.println("pid=" + result.processId() + " listening to the port " + PORT);
         assertEquals(0, result.returncode(), result.message());
         assertTrue(result.processId() > 0);
@@ -72,14 +72,14 @@ public class ProcessIdentifierTest {
             throws IOException, InterruptedException
     {
         long jvmProcessId = ProcessFinder.findCurrentJvmPid();
-        FindingResult result = ProcessFinder.findPidByListeningPort(PORT);
+        ProcessFindingResult result = ProcessFinder.findPidByListeningPort(PORT);
         assertEquals(0, result.returncode(), result.message());
         assertEquals(jvmProcessId, result.processId(), result.message());
     }
 
     @Test
     void test_findProcessIdByListeningPort_notfound() throws IOException, InterruptedException {
-        FindingResult result = ProcessFinder.findPidByListeningPort(PORT + 1);
+        ProcessFindingResult result = ProcessFinder.findPidByListeningPort(PORT + 1);
         assertNotEquals(0, result.returncode(), result.message());
         assertTrue(result.processId() < 0);
         //System.err.println(result.message());

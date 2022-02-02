@@ -37,7 +37,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    maxParallelForks = 2
+    maxParallelForks = 1
     finalizedBy jacocoTestReport
 }
 

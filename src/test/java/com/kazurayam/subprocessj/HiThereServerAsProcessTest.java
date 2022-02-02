@@ -2,7 +2,6 @@ package com.kazurayam.subprocessj;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -10,7 +9,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
-import com.kazurayam.subprocessj.ProcessTerminator.TerminationResult;
+import com.kazurayam.subprocessj.ProcessTerminator.ProcessTerminationResult;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -43,7 +42,7 @@ public class HiThereServerAsProcessTest {
 
     @AfterAll
     static public void afterAll() throws IOException, InterruptedException {
-        TerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
+        ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
         assert tr.returncode() == 0;
     }
 

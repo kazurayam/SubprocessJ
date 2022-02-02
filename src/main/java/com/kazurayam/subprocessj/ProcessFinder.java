@@ -35,23 +35,23 @@ public class ProcessFinder {
      * `lsof -i:portNumber -P` on Mac and Linux.
      *
      */
-    public static FindingResult findPidByListeningPort(int port)
+    public static ProcessFindingResult findPidByListeningPort(int port)
             throws IOException, InterruptedException
     {
-        FindingResult fr = new FindingResult(OSType.getOSType(), port);
-        if (fr.ostype() == OSType.MAC || fr.ostype() == OSType.UNIX) {
+        ProcessFindingResult pfr = new ProcessFindingResult(OSType.getOSType(), port);
+        if (pfr.ostype() == OSType.MAC || pfr.ostype() == OSType.UNIX) {
             // execute "lsof -i:pppp -P" command to find the list of processes
             // which are working of the port
-            fr.addAllCommand(Arrays.asList("lsof", "-i:" + String.valueOf(port), "-P"));
+            pfr.addAllCommand(Arrays.asList("lsof", "-i:" + String.valueOf(port), "-P"));
             Subprocess sp = new Subprocess();
-            CompletedProcess cp = sp.run(fr.command());
+            CompletedProcess cp = sp.run(pfr.command());
             if (cp.returncode() == 0) {
                 List<String> filtered =
                         /*
 $ lsof -i:80 -P
 COMMAND     PID           USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 com.docke   910 kazuakiurayama   91u  IPv6 0xbff554d0cffbd48b      0t0  TCP *:80 (LISTEN)
-katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.168.0.8:58990->server-18-65-100-111.kix50.fr.cloudfront.net:80 (ESTABLISHED)
+katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.168.0.8:58990->server-18-65-100-111.kix50.pfr.cloudfront.net:80 (ESTABLISHED)
              */
                         cp.stdout().stream()
                                 .filter(l ->
@@ -59,34 +59,34 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
                                                 String.format(":%d (LISTEN)", port)
                                         ))
                                 .collect(Collectors.toList());
-                fr.addAllFilteredStdout(filtered);
-                if (fr.filteredStdout().size() == 1) {
+                pfr.addAllFilteredStdout(filtered);
+                if (pfr.filteredStdout().size() == 1) {
                     String[] tokens = filtered.get(0).split("\\s+");
                     if (tokens.length >= 1) {
                         try {
-                            fr.setProcessId(Long.parseLong(tokens[1]));
-                            fr.setReturncode(0);
+                            pfr.setProcessId(Long.parseLong(tokens[1]));
+                            pfr.setReturncode(0);
                         } catch (NumberFormatException e) {
-                            fr.setMessage(e.getMessage());
-                            fr.setReturncode(-1003);
+                            pfr.setMessage(e.getMessage());
+                            pfr.setReturncode(-1003);
                         }
                     } else {
-                        fr.setMessage("too short tokens");
-                        fr.setReturncode(-1002);
+                        pfr.setMessage("too short tokens");
+                        pfr.setReturncode(-1002);
                     }
                 } else {
-                    fr.setMessage(String.format("no process found listening to the IP port:%d", port));
-                    fr.setReturncode(-1001);
+                    pfr.setMessage(String.format("no process found listening to the IP port:%d", port));
+                    pfr.setReturncode(-1001);
                 }
             } else {
-                fr.setMessage("lsof command failed. may be no process is listening to the port " + port);
-                fr.addAllStderr(cp.stderr());
-                fr.setReturncode(cp.returncode());
+                pfr.setMessage("lsof command failed. may be no process is listening to the port " + port);
+                pfr.addAllStderr(cp.stderr());
+                pfr.setReturncode(cp.returncode());
             }
-        } else if (fr.ostype() == OSType.WINDOWS) {
-            fr.addAllCommand(Arrays.asList("netstat", "-ano"));
+        } else if (pfr.ostype() == OSType.WINDOWS) {
+            pfr.addAllCommand(Arrays.asList("netstat", "-ano"));
             Subprocess sp = new Subprocess();
-            CompletedProcess cp = sp.run(fr.command());
+            CompletedProcess cp = sp.run(pfr.command());
             if (cp.returncode() == 0) {
                 List<String> filtered =
             /*
@@ -101,31 +101,31 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
                                         l.matches(makeRegexForFilteringWindowsNetstatOutput(port))
                                 )
                                 .collect(Collectors.toList());
-                fr.addAllFilteredStdout(filtered);
-                if (fr.filteredStdout().size() == 1) {
+                pfr.addAllFilteredStdout(filtered);
+                if (pfr.filteredStdout().size() == 1) {
                     Matcher m = Pattern.compile(makeRegexForFilteringWindowsNetstatOutput(port))
-                            .matcher(fr.filteredStdout().get(0));
+                            .matcher(pfr.filteredStdout().get(0));
                     if (m.matches()) {
-                        fr.setProcessId(Long.parseLong(m.group(8)));
-                        fr.setReturncode(0);
+                        pfr.setProcessId(Long.parseLong(m.group(8)));
+                        pfr.setReturncode(0);
                     } else {
-                        fr.setMessage(m.toString() + " does not match " + fr.filteredStdout().get(0));
-                        fr.setReturncode(-2003);
+                        pfr.setMessage(m.toString() + " does not match " + pfr.filteredStdout().get(0));
+                        pfr.setReturncode(-2003);
                     }
                 } else {
-                    fr.setMessage("fr.filteredStdout().size=" + fr.filteredStdout().size());
-                    fr.setReturncode(-2002);
+                    pfr.setMessage("pfr.filteredStdout().size=" + pfr.filteredStdout().size());
+                    pfr.setReturncode(-2002);
                 }
             } else {
-                fr.setMessage("netstat command failed.");
-                fr.addAllStderr(cp.stderr());
-                fr.setReturncode(cp.returncode());
+                pfr.setMessage("netstat command failed.");
+                pfr.addAllStderr(cp.stderr());
+                pfr.setReturncode(cp.returncode());
             }
         } else {
-            fr.setMessage(String.format("OSType: %s is unsupported", fr.ostype().toString()));
-            fr.setReturncode(-999);throw new IllegalStateException("OSType: ${ostype} is unsupported");
+            pfr.setMessage(String.format("OSType: %s is unsupported", pfr.ostype().toString()));
+            pfr.setReturncode(-999);throw new IllegalStateException("OSType: ${ostype} is unsupported");
         }
-        return fr;
+        return pfr;
     }
 
     /**
@@ -147,7 +147,7 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
     /**
      *
      */
-    public static class FindingResult {
+    public static class ProcessFindingResult {
         private final OSType ostype;
         private int port = 0;
         private final List<String> command = new ArrayList<>();
@@ -157,7 +157,7 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
         private long processId = -1;  // >0 if found, -1 not found
         private int returncode = -1;  // 0: found, non 0: not found
         private String message = "";
-        public FindingResult(OSType ostype, int port) {
+        public ProcessFindingResult(OSType ostype, int port) {
             this.ostype = ostype;
             this.port = port;
         }

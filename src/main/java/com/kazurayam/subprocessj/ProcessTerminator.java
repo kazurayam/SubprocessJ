@@ -6,7 +6,7 @@ import java.util.Optional;
 
 
 import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
-import com.kazurayam.subprocessj.ProcessFinder.FindingResult;
+import com.kazurayam.subprocessj.ProcessFinder.ProcessFindingResult;
 
 /**
  * killProcessListeningPort(int portNumber) identifies the running process
@@ -33,39 +33,39 @@ public class ProcessTerminator {
      * @throws IOException if failed to kill a OS process
      * @throws InterruptedException if the process was interrupted
      */
-    public static TerminationResult killProcessOnPort(int portNumber)
+    public static ProcessTerminationResult killProcessOnPort(int portNumber)
             throws IOException, InterruptedException
     {
-        FindingResult fr =
+        ProcessFindingResult pfr =
                 ProcessFinder.findPidByListeningPort(portNumber);
 
-        TerminationResult tr;
-        if (fr.returncode() == 0) {
+        ProcessTerminationResult ptr;
+        if (pfr.returncode() == 0) {
             long currentPid = ProcessFinder.findCurrentJvmPid();
-            if (fr.processId() == currentPid) {
+            if (pfr.processId() == currentPid) {
                 // we should NEVER kill ourself
-                tr = new TerminationResult();
-                tr.setMessage("we should not kill ourself");
-                tr.setReturncode(-899);
+                ptr = new ProcessTerminationResult();
+                ptr.setMessage("we should not kill ourself");
+                ptr.setReturncode(-899);
             } else {
-                tr = killProcessByPid(fr);
-                tr.setReturncode(0);
+                ptr = killProcessByPid(pfr);
+                ptr.setReturncode(0);
             }
         } else {
-            tr = new TerminationResult();
-            tr.setMessage("there is no process listening to the port " + portNumber);
-            tr.setReturncode(-898);
+            ptr = new ProcessTerminationResult();
+            ptr.setMessage("there is no process listening to the port " + portNumber);
+            ptr.setReturncode(-898);
         }
-        return tr;
+        return ptr;
     }
 
-    public static TerminationResult killProcessByPid(FindingResult rs)
+    public static ProcessTerminationResult killProcessByPid(ProcessFindingResult rs)
             throws IOException, InterruptedException
     {
-        TerminationResult tr = new TerminationResult(rs);
+        ProcessTerminationResult ptr = new ProcessTerminationResult(rs);
         if (rs.processId() == ProcessFinder.findCurrentJvmPid()) {
-            tr.setMessage("you should never kill the current process");
-            tr.setReturncode(-899);
+            ptr.setMessage("you should never kill the current process");
+            ptr.setReturncode(-899);
         } else {
             Subprocess subprocess = new Subprocess();
             if (OSType.isMac() || OSType.isUnix() || OSType.isWindows()) {
@@ -80,18 +80,18 @@ public class ProcessTerminator {
                     );
                 }
                 if (cp.returncode() == 0) {
-                    tr.setReturncode(0);
+                    ptr.setReturncode(0);
                 } else {
-                    tr.setMessage(cp.stderr().toString());
-                    tr.setReturncode(cp.returncode());
+                    ptr.setMessage(cp.stderr().toString());
+                    ptr.setReturncode(cp.returncode());
                 }
             } else {
-                tr.setReturncode(-897);
-                tr.setMessage("unsupported OS type");
+                ptr.setReturncode(-897);
+                ptr.setMessage("unsupported OS type");
             }
 
         }
-        return tr;
+        return ptr;
     }
 
 
@@ -99,24 +99,24 @@ public class ProcessTerminator {
      * A Data Transfer Object that contains the return code,
      * STDOUT of `lsof -i:port -P` command that reveals how ProcessKiller worked.
      */
-    public static class TerminationResult {
+    public static class ProcessTerminationResult {
 
-        private final FindingResult findingResult;
+        private final ProcessFindingResult pfr;
         private String message;
         private int returncode;
 
-        public TerminationResult() {
+        public ProcessTerminationResult() {
             this.message = "";
-            this.findingResult = null;
+            this.pfr = null;
         }
 
-        public TerminationResult(FindingResult result) {
-            this.findingResult = null;
+        public ProcessTerminationResult(ProcessFindingResult result) {
+            this.pfr = null;
         }
 
-        public Optional<FindingResult> getFindingResult() {
-            if (findingResult != null) {
-                return Optional.of(findingResult);
+        public Optional<ProcessFindingResult> getProcessFindingResult() {
+            if (pfr != null) {
+                return Optional.of(pfr);
             } else {
                 return Optional.empty();
             }
@@ -144,9 +144,9 @@ public class ProcessTerminator {
         if (args.length > 0) {
             port = Integer.parseInt(args[0]);
         }
-        FindingResult fr = ProcessFinder.findPidByListeningPort(port);
+        ProcessFindingResult fr = ProcessFinder.findPidByListeningPort(port);
         if (fr.returncode() == 0) {
-            TerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
+            ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
             if (tr.returncode() != 0) {
                 System.out.println("failed to terminate pid=" + fr.processId());
             }
