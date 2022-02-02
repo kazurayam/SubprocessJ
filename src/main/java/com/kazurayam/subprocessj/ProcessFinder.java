@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.lang.management.ManagementFactory;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
@@ -82,13 +84,64 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
                 fr.setReturncode(cp.returncode());
             }
         } else if (fr.ostype() == OSType.WINDOWS) {
-            fr.setMessage("Windows is yet to be supported");
-            fr.setReturncode(-998);
+            fr.addAllCommand(Arrays.asList("netstat", "-ano"));
+            Subprocess sp = new Subprocess();
+            CompletedProcess cp = sp.run(fr.command());
+            if (cp.returncode() == 0) {
+                List<String> filtered =
+            /*
+            $ netstat -ano | find "LISTEN" | find "80"
+  TCP         0.0.0.0:13688          0.0.0.0:0              LISTENING       4080
+  TCP         [::]:13688             [::]:0                 LISTENING       4080
+             */
+                        // protocol   local-address  exteria-address  state  process-id
+                        cp.stdout().stream()
+                                .filter(l ->
+                                        l.contains("LISTENING") &&
+                                        l.matches(makeRegexForFilteringWindowsNetstatOutput(port))
+                                )
+                                .collect(Collectors.toList());
+                fr.addAllFilteredStdout(filtered);
+                if (fr.filteredStdout().size() == 1) {
+                    Matcher m = Pattern.compile(makeRegexForFilteringWindowsNetstatOutput(port))
+                            .matcher(fr.filteredStdout().get(0));
+                    if (m.matches()) {
+                        fr.setProcessId(Long.parseLong(m.group(8)));
+                        fr.setReturncode(0);
+                    } else {
+                        fr.setMessage(m.toString() + " does not match " + fr.filteredStdout().get(0));
+                        fr.setReturncode(-2003);
+                    }
+                } else {
+                    fr.setMessage("fr.filteredStdout().size=" + fr.filteredStdout().size());
+                    fr.setReturncode(-2002);
+                }
+            } else {
+                fr.setMessage("netstat command failed.");
+                fr.addAllStderr(cp.stderr());
+                fr.setReturncode(cp.returncode());
+            }
         } else {
             fr.setMessage(String.format("OSType: %s is unsupported", fr.ostype().toString()));
             fr.setReturncode(-999);throw new IllegalStateException("OSType: ${ostype} is unsupported");
         }
         return fr;
+    }
+
+    /**
+     * <PRE>
+     *   $ netstat -ano | find "LISTEN" | find "80"
+     *     TCP         0.0.0.0:13688          0.0.0.0:0              LISTENING       4080
+     *     TCP         [::]:13688             [::]:0                 LISTENING       4080
+     * </PRE>
+     *
+     *     protocol    local-address          exteria-address        state     process-id
+     *
+     * @param port
+     * @return
+     */
+    public static String makeRegexForFilteringWindowsNetstatOutput(int port) {
+        return "\\s*TCP\\s+(([\\d\\.]+):(" + String.valueOf(port) + "))\\s+(([\\d\\.]+):(\\d+))\\s+(LISTENING)\\s+(\\d+)\\s*";
     }
 
     /**

@@ -124,5 +124,21 @@ public class ProcessTerminator {
             return this.returncode;
         }
     }
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        int port = 8500;
+        if (args.length > 0) {
+            port = Integer.parseInt(args[0]);
+        }
+        FindingResult fr = ProcessFinder.findPidByListeningPort(port);
+        if (fr.returncode() == 0) {
+            TerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
+            if (tr.returncode() != 0) {
+                System.out.println("failed to terminate pid=" + fr.processId());
+            }
+        } else {
+            System.err.println("no process is listening to the port " + port);
+        }
+    }
 }
 
