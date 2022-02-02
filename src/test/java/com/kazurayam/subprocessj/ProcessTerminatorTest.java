@@ -32,8 +32,9 @@ public class ProcessTerminatorTest {
             throws IOException, InterruptedException {
         ProcessFinder.ProcessFindingResult fr = ProcessFinder.findPidByListeningPort(PORT);
         if (fr.returncode() == 0) {
-            ProcessTerminationResult tr = ProcessTerminator.killProcessByPid(fr);
-            assertEquals(0, tr.returncode());
+            ProcessTerminationResult ptr = ProcessTerminator.killProcessByPid(fr);
+            printPTR("test_killProcessByPid", ptr);
+            assertEquals(0, ptr.returncode());
         }
     }
 
@@ -41,16 +42,13 @@ public class ProcessTerminatorTest {
     public void test_killProcessOnPort()
             throws IOException, InterruptedException
     {
-        ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(PORT);
-        if (tr.returncode() != 0) {
-            System.err.println("tr.message:" + tr.message());
-            System.err.println("tr.returncode:" + tr.returncode());
-            if (tr.getProcessFindingResult().isPresent()) {
-                System.err.println("fr.message:" + tr.getProcessFindingResult().get().message());
-                System.err.println("fr.returncode:" + tr.getProcessFindingResult().get().returncode());
-            }
-        }
-        assertEquals(0, tr.returncode());
+        ProcessTerminationResult ptr = ProcessTerminator.killProcessOnPort(PORT);
+        printPTR("test_killProcessOnPort", ptr);
+        assertEquals(0, ptr.returncode());
     }
 
+    private void printPTR(String label, ProcessTerminationResult ptr) {
+        System.out.println("-------- " + label + " --------");
+        System.out.println(ptr.toString());
+    }
 }

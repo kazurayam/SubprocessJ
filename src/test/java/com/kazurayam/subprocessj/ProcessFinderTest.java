@@ -30,34 +30,11 @@ public class ProcessFinderTest {
     }
 
     @Test
-    void test_getCurrentJvmPid() {
-        long jvmProcessId = ProcessFinder.findCurrentJvmPid();
-        assertTrue(jvmProcessId > 0);
-    }
-
-    /**
-     * Just lookup Pid that is listening to port 8500
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @Test
-    void look_for_pic_listening_to_8500() throws IOException, InterruptedException{
-        ProcessFindingResult result = ProcessFinder.findPidByListeningPort(8500);
-        if (result.returncode() == 0) {
-            System.out.println("pid=" + result.processId() + " listening to the port 8500");
-        } else {
-            System.err.println("no process found listening tot the port 8500");
-        }
-    }
-
-    @Test
-    void test_findProcessIdByListeningPort_found()
-            throws IOException, InterruptedException
-    {
-        ProcessFindingResult result = ProcessFinder.findPidByListeningPort(PORT);
-        System.out.println("pid=" + result.processId() + " listening to the port " + PORT);
-        assertEquals(0, result.returncode(), result.message());
-        assertTrue(result.processId() > 0);
+    void test_findProcessIdByListeningPort_found() {
+        ProcessFindingResult pfr = ProcessFinder.findPidByListeningPort(PORT);
+        printPFR("test_findProcessIdByListeningPort_found", pfr);
+        assertEquals(0, pfr.returncode(), pfr.message());
+        assertTrue(pfr.processId() > 0);
     }
 
     /**
@@ -68,21 +45,20 @@ public class ProcessFinderTest {
      * @throws InterruptedException
      */
     @Test
-    void test_HiThereServer_is_running_on_the_same_JVM_process()
-            throws IOException, InterruptedException
-    {
+    void test_HiThereServer_is_running_on_this_process() {
         long jvmProcessId = ProcessFinder.findCurrentJvmPid();
-        ProcessFindingResult result = ProcessFinder.findPidByListeningPort(PORT);
-        assertEquals(0, result.returncode(), result.message());
-        assertEquals(jvmProcessId, result.processId(), result.message());
+        ProcessFindingResult pfr = ProcessFinder.findPidByListeningPort(PORT);
+        printPFR("test_HiThereServer_is_running_on_this_process", pfr);
+        assertEquals(0, pfr.returncode(), pfr.message());
+        assertEquals(jvmProcessId, pfr.processId(), pfr.message());
     }
 
     @Test
-    void test_findProcessIdByListeningPort_notfound() throws IOException, InterruptedException {
-        ProcessFindingResult result = ProcessFinder.findPidByListeningPort(PORT + 1);
-        assertNotEquals(0, result.returncode(), result.message());
-        assertTrue(result.processId() < 0);
-        //System.err.println(result.message());
+    void test_findProcessIdByListeningPort_notfound() {
+        ProcessFindingResult pfr = ProcessFinder.findPidByListeningPort(PORT + 1);
+        printPFR("test_findProcessIdByListeningPort_notfound", pfr);
+        assertNotEquals(0, pfr.returncode(), pfr.message());
+        assertTrue(pfr.processId() < 0);
     }
 
     @Test
@@ -108,5 +84,10 @@ public class ProcessFinderTest {
         Matcher m1 = Pattern.compile(ProcessFinder.makeRegexForFilteringWindowsNetstatOutput(13688))
                 .matcher(data[1]);
         assertFalse(m1.matches(), data[1] + "\n" + m1.toString());
+    }
+
+    private void printPFR(String label, ProcessFindingResult pfr) {
+        System.out.println("-------- " + label + " --------");
+        System.out.println(pfr.toString());
     }
 }

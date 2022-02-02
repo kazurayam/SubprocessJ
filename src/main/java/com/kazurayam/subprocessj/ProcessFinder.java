@@ -1,6 +1,9 @@
 package com.kazurayam.subprocessj;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +38,18 @@ public class ProcessFinder {
      * `lsof -i:portNumber -P` on Mac and Linux.
      *
      */
-    public static ProcessFindingResult findPidByListeningPort(int port)
+    public static ProcessFindingResult findPidByListeningPort(int port) {
+        ProcessFindingResult pfr = new ProcessFindingResult(OSType.getOSType(), port);
+        try {
+            pfr = findingPidByListeningPort__(port);
+        } catch (IOException | InterruptedException e) {
+            // will never come here
+            e.printStackTrace();
+        }
+        return pfr;
+    }
+
+    private static ProcessFindingResult findingPidByListeningPort__(int port)
             throws IOException, InterruptedException
     {
         ProcessFindingResult pfr = new ProcessFindingResult(OSType.getOSType(), port);
@@ -45,6 +59,8 @@ public class ProcessFinder {
             pfr.addAllCommand(Arrays.asList("lsof", "-i:" + String.valueOf(port), "-P"));
             Subprocess sp = new Subprocess();
             CompletedProcess cp = sp.run(pfr.command());
+            pfr.addAllStdout(cp.stdout());
+            pfr.addAllStderr(cp.stderr());
             if (cp.returncode() == 0) {
                 List<String> filtered =
                         /*
@@ -80,13 +96,14 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
                 }
             } else {
                 pfr.setMessage("lsof command failed. may be no process is listening to the port " + port);
-                pfr.addAllStderr(cp.stderr());
                 pfr.setReturncode(cp.returncode());
             }
         } else if (pfr.ostype() == OSType.WINDOWS) {
             pfr.addAllCommand(Arrays.asList("netstat", "-ano"));
             Subprocess sp = new Subprocess();
             CompletedProcess cp = sp.run(pfr.command());
+            pfr.addAllStdout(cp.stdout());
+            pfr.addAllStderr(cp.stderr());
             if (cp.returncode() == 0) {
                 List<String> filtered =
             /*
@@ -118,7 +135,6 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
                 }
             } else {
                 pfr.setMessage("netstat command failed.");
-                pfr.addAllStderr(cp.stderr());
                 pfr.setReturncode(cp.returncode());
             }
         } else {
@@ -208,6 +224,77 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
         }
         public String message() {
             return this.message;
+        }
+
+        @Override
+        public String toString() {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(new BufferedWriter(sw));
+            pw.println("<pfr rc=\"" + this.returncode() + "\">");
+            pw.println("<message>" + this.message() + "</message>");
+            pw.println("<ostype>" + this.ostype() + "</ostype>");
+            pw.println("<port>" + this.port() + "</port>");
+            pw.println("<processid>" + this.processId() + "</processid>");
+            // command
+            int count = 0;
+            pw.print("<command>");
+            for (String line : this.command()) {
+                if (count > 0) {
+                    pw.print(" ");
+                }
+                if (line.contains(" ")) {
+                    pw.print("\"" + line + "\"");
+                } else {
+                    pw.print(line);
+                }
+                count += 1;
+            }
+            pw.println("</command>");
+
+            // stdout
+            count = 0;
+            pw.print("<stdout><![CDATA[");
+            if (this.stdout().size() < 10) {
+                for (String line : this.stdout()) {
+                    if (count > 0) {
+                        pw.println();
+                    }
+                    pw.print(line);
+                    count += 1;
+                }
+            } else {
+                pw.println("    ... omitted to many lines ...");
+            }
+            pw.println("]]></stdout>");
+
+            // filtered stdout
+            count = 0;
+            pw.print("<filtered-stdout><![CDATA[");
+            for (String line : this.filteredStdout()) {
+                if (count > 0) {
+                    pw.println();
+                }
+                pw.print(line);
+                count += 1;
+            }
+            pw.println("]]></filtered-stdout>");
+
+            // stderr
+            count = 0;
+            pw.print("<stderr><![CDATA[");
+            for (String line : this.stderr()) {
+                if (count > 0) {
+                    pw.println();
+                }
+                pw.print(line);
+                count += 1;
+            }
+            pw.println("]]></stderr>");
+
+            pw.println("</pfr>");
+            pw.flush();
+            pw.close();
+            return sw.toString();
         }
     }
 }

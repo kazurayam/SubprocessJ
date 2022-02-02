@@ -1,6 +1,9 @@
 package com.kazurayam.subprocessj;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -59,11 +62,11 @@ public class ProcessTerminator {
         return ptr;
     }
 
-    public static ProcessTerminationResult killProcessByPid(ProcessFindingResult rs)
+    public static ProcessTerminationResult killProcessByPid(ProcessFindingResult pfr)
             throws IOException, InterruptedException
     {
-        ProcessTerminationResult ptr = new ProcessTerminationResult(rs);
-        if (rs.processId() == ProcessFinder.findCurrentJvmPid()) {
+        ProcessTerminationResult ptr = new ProcessTerminationResult(pfr);
+        if (pfr.processId() == ProcessFinder.findCurrentJvmPid()) {
             ptr.setMessage("you should never kill the current process");
             ptr.setReturncode(-899);
         } else {
@@ -72,11 +75,11 @@ public class ProcessTerminator {
                 CompletedProcess cp;
                 if (OSType.isWindows()) {
                     cp = subprocess.run(
-                            Arrays.asList("taskkill", "/f", "/pid", String.valueOf(rs.processId()))
+                            Arrays.asList("taskkill", "/f", "/pid", String.valueOf(pfr.processId()))
                     );
                 } else {
                     cp = subprocess.run(
-                            Arrays.asList("kill", String.valueOf(rs.processId()))
+                            Arrays.asList("kill", String.valueOf(pfr.processId()))
                     );
                 }
                 if (cp.returncode() == 0) {
@@ -101,17 +104,14 @@ public class ProcessTerminator {
      */
     public static class ProcessTerminationResult {
 
-        private final ProcessFindingResult pfr;
-        private String message;
-        private int returncode;
+        private ProcessFindingResult pfr = null;
+        private String message = "";
+        private int returncode = -1;
 
-        public ProcessTerminationResult() {
-            this.message = "";
-            this.pfr = null;
-        }
+        public ProcessTerminationResult() {}
 
         public ProcessTerminationResult(ProcessFindingResult result) {
-            this.pfr = null;
+            this.pfr = result;
         }
 
         public Optional<ProcessFindingResult> getProcessFindingResult() {
@@ -136,6 +136,19 @@ public class ProcessTerminator {
 
         public int returncode() {
             return this.returncode;
+        }
+
+        @Override
+        public String toString() {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(new BufferedWriter(sw));
+            pw.println("<ptr rc=\"" + this.returncode() + "\">");
+            pw.println("<message>" + this.message() + "</message>");
+            this.getProcessFindingResult().ifPresent(pw::print);
+            pw.println("</ptr>");
+            pw.flush();
+            pw.close();
+            return sw.toString();
         }
     }
 
