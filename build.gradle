@@ -20,7 +20,7 @@ repositories {
 
 group = 'com.kazurayam'
 archivesBaseName = "subprocessj"
-version = '0.2.2-SNAPSHOT'
+version = '0.2.2'
 
 ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
