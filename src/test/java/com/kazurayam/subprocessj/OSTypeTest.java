@@ -11,6 +11,6 @@ public class OSTypeTest {
      */
     @Test
     void test_getOSType() {
-        assertTrue(OSType.isMac() || OSType.isUnix() || OSType.isWindows())
+        assertTrue(OSType.isMac() || OSType.isUnix() || OSType.isWindows());
     }
 }
