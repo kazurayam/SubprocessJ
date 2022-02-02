@@ -2,9 +2,23 @@
 
 ## What is this?
 
-1.  You can execute arbitrary OS command in your Java application using `com.kazurayam.subprocessj.Subprocess`.
+1.  You can execute arbitrary OS command from your Java application
+    using `com.kazurayam.subprocessj.Subprocess`.
+    This class utilizes `java.lang.ProcessBuilder`.
+    A new OS process will be started and run background.
 
-2.  You can stop a server process which is listening to a specific IP port using `ProcessTerminator`.
+2.  You can find the process id of the process which is listening to a specific IP port of the localhost
+    using `com.kazurayam.subprocessj.ProcessFinder`.
+    It can find the pid of current JVM process as well.
+
+3.  You can stop a server process by pid or by the IP port
+    using `com.kazurayam.subprocessj.ProcessTerminator`.
+
+4.  You can find the absolute file path of commands
+    using `com.kazurayam.subprocesj.CommandFinder`.
+
+5.  You can find the type of OS on which your java application is
+    currently working using `com.kazurayam.subprocessj.OSType`.
 
 ## Motivation
 
@@ -14,13 +28,20 @@ So I have made a simple wrapper of ProcessBuilder which exposes a limited subset
 
 I named this as `subprocjessj` as I meant it to be a homage to the [Subprocess](https://docs.python.org/3/library/subprocess.html) module of Python.
 
+I wanted to use `Subprocess` to start and stop an HTTP server inside
+a JUnit test for my Java application.
+I wanted to start Python-based HTTP server using the `docker run` command.
+Then I need to be able to kill the background process.
+I wanted this procedure fully automated.
+In order to achieve this, I developed `ProcessTerminator` and some helpers.
+
 ## API
 
 Javadoc is [here](https://kazurayam.github.io/subprocessj/api/index.html).
 
-## Example
+## Examples
 
-### Running a process
+### Starting a process
 
 You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. The `run()` will wait for the sub-process to finish, and returns a `com.kazurayam.subprocessj.CompletedProcess` object which contains the return code, STDOUT and STDERR emitted by the sub-process.
 
@@ -40,33 +61,37 @@ You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. 
     class SubprocessTest {
 
         @Test
-        void test_ls() throws Exception {
-            Subprocess.CompletedProcess cp =
-                    new Subprocess()
-                            .cwd(new File("."))
-                            .run(Arrays.asList("sh", "-c", "ls")
-                            );
+        void test_list() throws Exception {
+            Subprocess.CompletedProcess cp;
+            if (OSType.isMac() || OSType.isUnix()) {
+                cp = new Subprocess().cwd(new File("."))
+                        .run(Arrays.asList("sh", "-c", "ls")
+                        );
+            } else {
+                cp = new Subprocess().cwd(new File("."))
+                        .run(Arrays.asList("cmd.exe", "/C", "dir")
+                        );
+            }
             assertEquals(0, cp.returncode());
-            //println "stdout: ${cp.getStdout()}";
-            //println "stderr: ${cp.getStderr()}";
             assertTrue(cp.stdout().size() > 0);
-            assertTrue(cp.stdout().contains("src"));
+            cp.stdout().forEach(System.out::println);
+            cp.stderr().forEach(System.err::println);
+            assertTrue(cp.stdout().toString().contains("src"));
         }
 
         @Test
         void test_date() throws Exception {
-            Subprocess.CompletedProcess cp =
-                    new Subprocess().run(Arrays.asList("/bin/date"));
+            Subprocess.CompletedProcess cp;
+            if (OSType.isMac() || OSType.isUnix()) {
+                cp = new Subprocess().run(Arrays.asList("/bin/date"));
+            } else {
+                // I could not find out how to execute "date" command on Windows.
+                cp = new Subprocess().run(Arrays.asList("java", "-version"));
+            }
             assertEquals(0, cp.returncode());
-            //println "stdout: ${cp.getStdout()}";
-            //println "stderr: ${cp.getStderr()}";
-            assertTrue(cp.stdout().size() > 0);
-            /*
-            assertTrue(cp.getStdout().stream()
-                    .filter { line ->
-                        line.contains("2021")
-                    }.collect(Collectors.toList()).size() > 0)
-             */
+            cp.stdout().forEach(System.out::println);
+            cp.stderr().forEach(System.err::println);
+            assertTrue(cp.stdout().size() > 0 || cp.stderr().size() > 0);
         }
 
         /**
@@ -130,7 +155,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     import java.net.URLConnection;
     import java.util.Arrays;
     import java.util.List;
-    import com.kazurayam.subprocessj.ProcessTerminator.TerminationResult;
+    import com.kazurayam.subprocessj.ProcessTerminator.ProcessTerminationResult;
     import static org.junit.jupiter.api.Assertions.assertTrue;
 
     /**
@@ -163,7 +188,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
         @AfterAll
         static public void afterAll() throws IOException, InterruptedException {
-            TerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
+            ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
             assert tr.returncode() == 0;
         }
 
@@ -175,6 +200,91 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 @Test-annoted method makes an HTTP request to the HiThereServer.
 
 @AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
+
+### Finding process id
+
+#### Finding pid of the current JVM
+
+    package com.kazurayam.subprocessj;
+
+    import org.junit.jupiter.api.Test;
+
+    import static org.junit.jupiter.api.Assertions.assertTrue;
+
+    public class ProcessFinderTest_CurrentJvmPid {
+
+        @Test
+        void test_getCurrentJvmPid() {
+            long jvmProcessId = ProcessFinder.findCurrentJvmPid();
+            assertTrue(jvmProcessId > 0);
+        }
+
+    }
+
+#### Fnding pid which is listening to a specific IP port
+
+    package com.kazurayam.subprocessj;
+
+    import com.kazurayam.subprocessj.ProcessFinder.ProcessFindingResult;
+    import org.junit.jupiter.api.AfterAll;
+    import org.junit.jupiter.api.BeforeAll;
+    import org.junit.jupiter.api.Test;
+
+    import java.io.IOException;
+    import java.util.regex.Matcher;
+    import java.util.regex.Pattern;
+
+    import static org.junit.jupiter.api.Assertions.*;
+
+    public class ProcessFinderTest_base {
+
+        private static HiThereServer server;
+        private static final int PORT = 8090;
+
+        @BeforeAll
+        public static void beforeAll() throws IOException {
+            server = new HiThereServer();
+            server.setPort(PORT);
+            server.startup();
+        }
+
+        @AfterAll
+        public static void afterAll() {
+            server.shutdown();
+        }
+
+        @Test
+        void test_findProcessIdByListeningPort_found() {
+            ProcessFindingResult pfr = ProcessFinder.findPidByListeningPort(PORT);
+            printPFR("test_findProcessIdByListeningPort_found", pfr);
+            assertEquals(0, pfr.returncode(), pfr.message());
+            assertTrue(pfr.processId() > 0);
+        }
+
+        private void printPFR(String label, ProcessFindingResult pfr) {
+            System.out.println("-------- " + label + " --------");
+            System.out.println(pfr.toString());
+        }
+    }
+
+### Identifying OS Type
+
+    package com.kazurayam.subprocessj;
+
+    import org.junit.jupiter.api.Test;
+
+    import static org.junit.jupiter.api.Assertions.assertTrue;
+
+    public class OSTypeTest {
+
+        /**
+         * Which OS am I working on now?
+         */
+        @Test
+        void test_getOSType() {
+            assertTrue(OSType.isMac() || OSType.isUnix() || OSType.isWindows());
+        }
+    }
 
 ## links
 

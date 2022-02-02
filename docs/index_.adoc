@@ -2,9 +2,19 @@
 
 == What is this?
 
-1. You can execute arbitrary OS command in your Java application using `com.kazurayam.subprocessj.Subprocess`.
-2. You can stop a server process which is listening to a specific IP port using `ProcessTerminator`.
-
+1. You can execute arbitrary OS command from your Java application
+ using `com.kazurayam.subprocessj.Subprocess`.
+ This class utilizes `java.lang.ProcessBuilder`.
+ A new OS process will be started and run background.
+2. You can find the process id of the process which is listening to a specific IP port of the localhost
+ using `com.kazurayam.subprocessj.ProcessFinder`.
+ It can find the pid of current JVM process as well.
+3. You can stop a server process by pid or by the IP port
+ using `com.kazurayam.subprocessj.ProcessTerminator`.
+4. You can find the absolute file path of commands
+ using `com.kazurayam.subprocesj.CommandFinder`.
+5. You can find the type of OS on which your java application is
+ currently working using `com.kazurayam.subprocessj.OSType`.
 
 == Motivation
 
@@ -14,13 +24,20 @@ So I have made a simple wrapper of ProcessBuilder which exposes a limited subset
 
 I named this as `subprocjessj` as I meant it to be a homage to the https://docs.python.org/3/library/subprocess.html[Subprocess] module of Python.
 
+I wanted to use `Subprocess` to start and stop an HTTP server inside
+a JUnit test for my Java application.
+I wanted to start Python-based HTTP server using the `docker run` command.
+Then I need to be able to kill the background process.
+I wanted this procedure fully automated.
+In order to achieve this, I developed `ProcessTerminator` and some helpers.
+
 == API
 
 Javadoc is https://kazurayam.github.io/subprocessj/api/index.html[here].
 
-== Example
+== Examples
 
-=== Running a process
+=== Starting a process
 
 You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. The `run()` will wait for the sub-process to finish, and returns a `com.kazurayam.subprocessj.CompletedProcess` object which contains the return code, STDOUT and STDERR emitted by the sub-process.
 
@@ -63,6 +80,29 @@ include::../src/test/java/com/kazurayam/subprocessj/HiThereServerAsProcessTest.j
 @Test-annoted method makes an HTTP request to the HiThereServer.
 
 @AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
+
+=== Finding process id
+
+==== Finding pid of the current JVM
+
+[source,java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/ProcessFinderTest_CurrentJvmPid.java[]
+----
+
+==== Fnding pid which is listening to a specific IP port
+
+[source,java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/ProcessFinderTest_base.java[]
+----
+
+=== Identifying OS Type
+
+[source,java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/OSTypeTest.java[]
+----
 
 == links
 

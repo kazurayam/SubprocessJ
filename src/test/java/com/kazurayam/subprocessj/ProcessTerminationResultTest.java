@@ -5,29 +5,29 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.kazurayam.subprocessj.ProcessFinder.FindingResult;
-import com.kazurayam.subprocessj.ProcessTerminator.TerminationResult;
+import com.kazurayam.subprocessj.ProcessFinder.ProcessFindingResult;
+import com.kazurayam.subprocessj.ProcessTerminator.ProcessTerminationResult;
 
-public class TerminationResultTest {
+public class ProcessTerminationResultTest {
 
-    TerminationResult tr;
+    ProcessTerminationResult tr;
 
     @BeforeEach
     public void setup() {
-        FindingResult fr = new FindingResult(OSType.getOSType(), 8500);
-        tr = new TerminationResult(fr);
+        ProcessFindingResult pfr = new ProcessFindingResult(OSType.getOSType(), 8500);
+        tr = new ProcessTerminationResult(pfr);
     }
 
     @Test
     public void test_constructor() {
-        tr.getFindingResult().ifPresent( fr -> {
+        tr.getProcessFindingResult().ifPresent(fr -> {
             assertEquals(8500, fr.port());
             assertTrue(fr.ostype() == OSType.MAC || fr.ostype() == OSType.WINDOWS);
-            assertEquals(-999, fr.returncode());
+            assertEquals(-1, fr.returncode());
             assertEquals(0, fr.stdout().size());
             assertEquals(0, fr.stderr().size());
             assertEquals(0, fr.filteredStdout().size());
-            assertEquals(-999L, fr.processId());
+            assertEquals(-1L, fr.processId());
         });
     }
 

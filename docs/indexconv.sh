@@ -25,7 +25,7 @@ while getopts ${optstring} arg; do
     esac
 done
 
-find . -iname "*.adoc" -type f -maxdepth 1 -not -name "_*.adoc" | while read fname; do
+find . -iname "*.adoc" -maxdepth 1 -type f  -not -name "_*.adoc" | while read fname; do
     target=${fname//adoc/md}
     xml=${fname//adoc/xml}
     echo "converting $fname into $target"

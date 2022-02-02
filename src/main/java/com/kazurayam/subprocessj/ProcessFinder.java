@@ -1,10 +1,15 @@
 package com.kazurayam.subprocessj;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.lang.management.ManagementFactory;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
@@ -37,23 +42,36 @@ public class ProcessFinder {
      * @throws InterruptedException when the subprosess was interrupted
      * @throws IOException when the subprocess failed
      */
-    public static FindingResult findPidByListeningPort(int port)
+    public static ProcessFindingResult findPidByListeningPort(int port) {
+        ProcessFindingResult pfr = new ProcessFindingResult(OSType.getOSType(), port);
+        try {
+            pfr = findingPidByListeningPort__(port);
+        } catch (IOException | InterruptedException e) {
+            // will never come here
+            e.printStackTrace();
+        }
+        return pfr;
+    }
+
+    private static ProcessFindingResult findingPidByListeningPort__(int port)
             throws IOException, InterruptedException
     {
-        FindingResult fr = new FindingResult(OSType.getOSType(), port);
-        if (fr.ostype() == OSType.MAC || fr.ostype() == OSType.UNIX) {
+        ProcessFindingResult pfr = new ProcessFindingResult(OSType.getOSType(), port);
+        if (pfr.ostype() == OSType.MAC || pfr.ostype() == OSType.UNIX) {
             // execute "lsof -i:pppp -P" command to find the list of processes
             // which are working of the port
-            fr.addAllCommand(Arrays.asList("lsof", "-i:" + String.valueOf(port), "-P"));
+            pfr.addAllCommand(Arrays.asList("lsof", "-i:" + String.valueOf(port), "-P"));
             Subprocess sp = new Subprocess();
-            CompletedProcess cp = sp.run(fr.command());
+            CompletedProcess cp = sp.run(pfr.command());
+            pfr.addAllStdout(cp.stdout());
+            pfr.addAllStderr(cp.stderr());
             if (cp.returncode() == 0) {
                 List<String> filtered =
                         /*
 $ lsof -i:80 -P
 COMMAND     PID           USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 com.docke   910 kazuakiurayama   91u  IPv6 0xbff554d0cffbd48b      0t0  TCP *:80 (LISTEN)
-katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.168.0.8:58990->server-18-65-100-111.kix50.fr.cloudfront.net:80 (ESTABLISHED)
+katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.168.0.8:58990->server-18-65-100-111.kix50.pfr.cloudfront.net:80 (ESTABLISHED)
              */
                         cp.stdout().stream()
                                 .filter(l ->
@@ -61,44 +79,95 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
                                                 String.format(":%d (LISTEN)", port)
                                         ))
                                 .collect(Collectors.toList());
-                fr.addAllFilteredStdout(filtered);
-                if (fr.filteredStdout().size() == 1) {
+                pfr.addAllFilteredStdout(filtered);
+                if (pfr.filteredStdout().size() == 1) {
                     String[] tokens = filtered.get(0).split("\\s+");
                     if (tokens.length >= 1) {
                         try {
-                            fr.setProcessId(Long.parseLong(tokens[1]));
-                            fr.setReturncode(0);
+                            pfr.setProcessId(Long.parseLong(tokens[1]));
+                            pfr.setReturncode(0);
                         } catch (NumberFormatException e) {
-                            fr.setMessage(e.getMessage());
-                            fr.setReturncode(-1003);
+                            pfr.setMessage(e.getMessage());
+                            pfr.setReturncode(-1003);
                         }
                     } else {
-                        fr.setMessage("too short tokens");
-                        fr.setReturncode(-1002);
+                        pfr.setMessage("too short tokens");
+                        pfr.setReturncode(-1002);
                     }
                 } else {
-                    fr.setMessage(String.format("no process found listening to the IP port:%d", port));
-                    fr.setReturncode(-1001);
+                    pfr.setMessage(String.format("no process found listening to the IP port:%d", port));
+                    pfr.setReturncode(-1001);
                 }
             } else {
-                fr.setMessage("lsof command failed. may be no process is listening to the port " + port);
-                fr.addAllStderr(cp.stderr());
-                fr.setReturncode(cp.returncode());
+                pfr.setMessage("lsof command failed. may be no process is listening to the port " + port);
+                pfr.setReturncode(cp.returncode());
             }
-        } else if (fr.ostype() == OSType.WINDOWS) {
-            fr.setMessage("Windows is yet to be supported");
-            fr.setReturncode(-998);
+        } else if (pfr.ostype() == OSType.WINDOWS) {
+            pfr.addAllCommand(Arrays.asList("netstat", "-ano"));
+            Subprocess sp = new Subprocess();
+            CompletedProcess cp = sp.run(pfr.command());
+            pfr.addAllStdout(cp.stdout());
+            pfr.addAllStderr(cp.stderr());
+            if (cp.returncode() == 0) {
+                List<String> filtered =
+            /*
+            $ netstat -ano | find "LISTEN" | find "80"
+  TCP         0.0.0.0:13688          0.0.0.0:0              LISTENING       4080
+  TCP         [::]:13688             [::]:0                 LISTENING       4080
+             */
+                        // protocol   local-address  exteria-address  state  process-id
+                        cp.stdout().stream()
+                                .filter(l ->
+                                        l.contains("LISTENING") &&
+                                        l.matches(makeRegexForFilteringWindowsNetstatOutput(port))
+                                )
+                                .collect(Collectors.toList());
+                pfr.addAllFilteredStdout(filtered);
+                if (pfr.filteredStdout().size() == 1) {
+                    Matcher m = Pattern.compile(makeRegexForFilteringWindowsNetstatOutput(port))
+                            .matcher(pfr.filteredStdout().get(0));
+                    if (m.matches()) {
+                        pfr.setProcessId(Long.parseLong(m.group(8)));
+                        pfr.setReturncode(0);
+                    } else {
+                        pfr.setMessage(m.toString() + " does not match " + pfr.filteredStdout().get(0));
+                        pfr.setReturncode(-2003);
+                    }
+                } else {
+                    pfr.setMessage("pfr.filteredStdout().size=" + pfr.filteredStdout().size());
+                    pfr.setReturncode(-2002);
+                }
+            } else {
+                pfr.setMessage("netstat command failed.");
+                pfr.setReturncode(cp.returncode());
+            }
         } else {
-            fr.setMessage(String.format("OSType: %s is unsupported", fr.ostype().toString()));
-            fr.setReturncode(-999);throw new IllegalStateException("OSType: ${ostype} is unsupported");
+            pfr.setMessage(String.format("OSType: %s is unsupported", pfr.ostype().toString()));
+            pfr.setReturncode(-999);throw new IllegalStateException("OSType: ${ostype} is unsupported");
         }
-        return fr;
+        return pfr;
+    }
+
+    /**
+     * <PRE>
+     *   $ netstat -ano | find "LISTEN" | find "80"
+     *     TCP         0.0.0.0:13688          0.0.0.0:0              LISTENING       4080
+     *     TCP         [::]:13688             [::]:0                 LISTENING       4080
+     * </PRE>
+     *
+     *     protocol    local-address          exteria-address        state     process-id
+     *
+     * @param port
+     * @return
+     */
+    public static String makeRegexForFilteringWindowsNetstatOutput(int port) {
+        return "\\s*TCP\\s+(([\\d\\.]+):(" + String.valueOf(port) + "))\\s+(([\\d\\.]+):(\\d+))\\s+(LISTENING)\\s+(\\d+)\\s*";
     }
 
     /**
      *
      */
-    public static class FindingResult {
+    public static class ProcessFindingResult {
         private final OSType ostype;
         private int port = 0;
         private final List<String> command = new ArrayList<>();
@@ -108,7 +177,7 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
         private long processId = -1;  // >0 if found, -1 not found
         private int returncode = -1;  // 0: found, non 0: not found
         private String message = "";
-        public FindingResult(OSType ostype, int port) {
+        public ProcessFindingResult(OSType ostype, int port) {
             this.ostype = ostype;
             this.port = port;
         }
@@ -159,6 +228,77 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
         }
         public String message() {
             return this.message;
+        }
+
+        @Override
+        public String toString() {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(new BufferedWriter(sw));
+            pw.println("<pfr rc=\"" + this.returncode() + "\">");
+            pw.println("<message>" + this.message() + "</message>");
+            pw.println("<ostype>" + this.ostype() + "</ostype>");
+            pw.println("<port>" + this.port() + "</port>");
+            pw.println("<processid>" + this.processId() + "</processid>");
+            // command
+            int count = 0;
+            pw.print("<command>");
+            for (String line : this.command()) {
+                if (count > 0) {
+                    pw.print(" ");
+                }
+                if (line.contains(" ")) {
+                    pw.print("\"" + line + "\"");
+                } else {
+                    pw.print(line);
+                }
+                count += 1;
+            }
+            pw.println("</command>");
+
+            // stdout
+            count = 0;
+            pw.print("<stdout><![CDATA[");
+            if (this.stdout().size() < 10) {
+                for (String line : this.stdout()) {
+                    if (count > 0) {
+                        pw.println();
+                    }
+                    pw.print(line);
+                    count += 1;
+                }
+            } else {
+                pw.println("    ... omitted to many lines ...");
+            }
+            pw.println("]]></stdout>");
+
+            // filtered stdout
+            count = 0;
+            pw.print("<filtered-stdout><![CDATA[");
+            for (String line : this.filteredStdout()) {
+                if (count > 0) {
+                    pw.println();
+                }
+                pw.print(line);
+                count += 1;
+            }
+            pw.println("]]></filtered-stdout>");
+
+            // stderr
+            count = 0;
+            pw.print("<stderr><![CDATA[");
+            for (String line : this.stderr()) {
+                if (count > 0) {
+                    pw.println();
+                }
+                pw.print(line);
+                count += 1;
+            }
+            pw.println("]]></stderr>");
+
+            pw.println("</pfr>");
+            pw.flush();
+            pw.close();
+            return sw.toString();
         }
     }
 }

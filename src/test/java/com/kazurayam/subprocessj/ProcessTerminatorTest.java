@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import com.kazurayam.subprocessj.ProcessTerminator.TerminationResult;
+import com.kazurayam.subprocessj.ProcessTerminator.ProcessTerminationResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,10 +30,11 @@ public class ProcessTerminatorTest {
     @Test
     public void test_killProcessByPid()
             throws IOException, InterruptedException {
-        ProcessFinder.FindingResult fr = ProcessFinder.findPidByListeningPort(PORT);
+        ProcessFinder.ProcessFindingResult fr = ProcessFinder.findPidByListeningPort(PORT);
         if (fr.returncode() == 0) {
-            TerminationResult tr = ProcessTerminator.killProcessByPid(fr);
-            assertEquals(0, tr.returncode());
+            ProcessTerminationResult ptr = ProcessTerminator.killProcessByPid(fr);
+            printPTR("test_killProcessByPid", ptr);
+            assertEquals(0, ptr.returncode());
         }
     }
 
@@ -41,16 +42,13 @@ public class ProcessTerminatorTest {
     public void test_killProcessOnPort()
             throws IOException, InterruptedException
     {
-        TerminationResult tr = ProcessTerminator.killProcessOnPort(PORT);
-        if (tr.returncode() != 0) {
-            System.err.println("tr.message:" + tr.message());
-            System.err.println("tr.returncode:" + tr.returncode());
-            if (tr.getFindingResult().isPresent()) {
-                System.err.println("fr.message:" + tr.getFindingResult().get().message());
-                System.err.println("fr.returncode:" + tr.getFindingResult().get().returncode());
-            }
-        }
-        assertEquals(0, tr.returncode(), tr.message());
+        ProcessTerminationResult ptr = ProcessTerminator.killProcessOnPort(PORT);
+        printPTR("test_killProcessOnPort", ptr);
+        assertEquals(0, ptr.returncode());
     }
 
+    private void printPTR(String label, ProcessTerminationResult ptr) {
+        System.out.println("-------- " + label + " --------");
+        System.out.println(ptr.toString());
+    }
 }
