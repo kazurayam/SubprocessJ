@@ -64,18 +64,32 @@ public class ProcessTerminator {
     {
         TerminationResult tr = new TerminationResult(rs);
         if (rs.processId() == ProcessFinder.findCurrentJvmPid()) {
-            tr.setMessage("we should not kill ourself");
+            tr.setMessage("you should never kill the current process");
             tr.setReturncode(-899);
         } else {
             Subprocess subprocess = new Subprocess();
-            CompletedProcess cp = subprocess.run(
-                    Arrays.asList("kill", String.valueOf(rs.processId()))
-            );
-            if (cp.returncode() == 0) {
-                tr.setReturncode(0);
+            if (OSType.isMac() || OSType.isUnix() || OSType.isWindows()) {
+                CompletedProcess cp;
+                if (OSType.isWindows()) {
+                    cp = subprocess.run(
+                            Arrays.asList("taskkill", "/f", "/pid", String.valueOf(rs.processId()))
+                    );
+                } else {
+                    cp = subprocess.run(
+                            Arrays.asList("kill", String.valueOf(rs.processId()))
+                    );
+                }
+                if (cp.returncode() == 0) {
+                    tr.setReturncode(0);
+                } else {
+                    tr.setMessage(cp.stderr().toString());
+                    tr.setReturncode(cp.returncode());
+                }
             } else {
-                tr.setReturncode(cp.returncode());
+                tr.setReturncode(-897);
+                tr.setMessage("unsupported OS type");
             }
+
         }
         return tr;
     }
