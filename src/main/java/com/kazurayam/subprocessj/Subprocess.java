@@ -117,6 +117,14 @@ public class Subprocess {
     public CompletedProcess run(List<String> command)
             throws IOException, InterruptedException {
         Objects.requireNonNull(command);
+        for (Object arg : command) {
+            if (! (arg instanceof String)) {
+                throw new IllegalArgumentException(
+                        String.format("given argument \"%s\" is not a java.lang.String, is an instance of %s",
+                                arg.toString(), arg.getClass().getName())
+                );
+            }
+        }
         ProcessBuilder builder = new ProcessBuilder();
         builder.directory(this.cwd);
         builder.command(command);
