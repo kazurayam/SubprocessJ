@@ -206,7 +206,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
     import org.junit.jupiter.api.Disabled;
     import org.junit.jupiter.api.Test;
-    import com.kazurayam.subprocessj.CommandFinder.CommandFindingResult;
+    import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
 
     import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertNotEquals;

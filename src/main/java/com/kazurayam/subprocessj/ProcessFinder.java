@@ -232,7 +232,7 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
         public String toString() {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(new BufferedWriter(sw));
-            pw.println("<pfr rc=\"" + this.returncode() + "\">");
+            pw.println("<process-finding-result rc=\"" + this.returncode() + "\">");
             pw.println("<message>" + this.message() + "</message>");
             pw.println("<ostype>" + this.ostype() + "</ostype>");
             pw.println("<port>" + this.port() + "</port>");
@@ -293,7 +293,7 @@ katalon   12497 kazuakiurayama  147u  IPv6 0xbff554d0cffbab4b      0t0  TCP 192.
             }
             pw.println("]]></stderr>");
 
-            pw.println("</pfr>");
+            pw.println("</process-finding-result>");
             pw.flush();
             pw.close();
             return sw.toString();

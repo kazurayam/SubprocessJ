@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.Objects;
 import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
 
-public class CommandFinder {
+public class CommandLocator {
 
-    public static CommandFindingResult find(String command) {
+    public static CommandLocatingResult find(String command) {
         Objects.requireNonNull(command);
         if (command.length() == 0) {
             throw new IllegalArgumentException("command must not be 0-length");
         }
-        CommandFindingResult cfr = new CommandFindingResult();
+        CommandLocatingResult cfr = new CommandLocatingResult();
         try {
             if (OSType.isWindows()) {
                 CompletedProcess cp = new Subprocess().run(Arrays.asList("where", command));
@@ -52,11 +52,11 @@ public class CommandFinder {
         return cfr;
     }
 
-    public static CommandFindingResult which(String command) {
+    public static CommandLocatingResult which(String command) {
         return find(command);
     }
 
-    public static CommandFindingResult where(String command) {
+    public static CommandLocatingResult where(String command) {
         return find(command);
     }
 
@@ -74,11 +74,11 @@ public class CommandFinder {
         return result;
     }
 
-    public static final class CommandFindingResult {
+    public static final class CommandLocatingResult {
         private int returncode;
         private final List<String> stdout;
         private final List<String> stderr;
-        public CommandFindingResult() {
+        public CommandLocatingResult() {
             this.returncode = -1;
             this.stdout = new ArrayList<>();
             this.stderr = new ArrayList<>();
@@ -106,7 +106,7 @@ public class CommandFinder {
         public String toString() {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
-            pw.print("<cfr ");
+            pw.print("<command-finding-result ");
             if (this.returncode() == 0) {
                 pw.println("rc=\"" + this.returncode() + "\">");
             } else {
@@ -127,7 +127,7 @@ public class CommandFinder {
                 count += 1;
             }
             pw.println("</stderr>");
-            pw.println("<cfr>");
+            pw.println("<command-finding-result>");
             pw.flush();
             pw.close();
             return sw.toString();

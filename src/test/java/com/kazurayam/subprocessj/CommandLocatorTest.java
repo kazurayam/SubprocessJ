@@ -2,12 +2,12 @@ package com.kazurayam.subprocessj;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import com.kazurayam.subprocessj.CommandFinder.CommandFindingResult;
+import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-public class CommandFinderTest {
+public class CommandLocatorTest {
 
     /**
      * The returned value depends on the runtime environment.
@@ -20,7 +20,7 @@ public class CommandFinderTest {
      */
     @Test
     void test_find_git_is_found() {
-        CommandFindingResult cfr = CommandFinder.find("git");
+        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
         printCFR("test_find_git_is_found", cfr);
         assertEquals(0, cfr.returncode());
     }
@@ -30,7 +30,7 @@ public class CommandFinderTest {
      */
     @Test
     void test_which_git() {
-        CommandFindingResult cfr = CommandFinder.which("git");
+        CommandLocatingResult cfr = CommandLocator.which("git");
         printCFR("test_which_git", cfr);
         assertEquals(0, cfr.returncode());
     }
@@ -40,7 +40,7 @@ public class CommandFinderTest {
      */
     @Test
     void test_where_git() {
-        CommandFindingResult cfr = CommandFinder.where("git");
+        CommandLocatingResult cfr = CommandLocator.where("git");
         printCFR("test_where_git", cfr);
         assertEquals(0, cfr.returncode());
     }
@@ -50,7 +50,7 @@ public class CommandFinderTest {
      */
     @Test
     void test_find_tiger_not_exists() {
-        CommandFindingResult cfr = CommandFinder.find("tiger");
+        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
         printCFR("test_find_tiger_not_exists", cfr);
         assertNotEquals(0, cfr.returncode());
     }
@@ -66,13 +66,13 @@ public class CommandFinderTest {
     @Test
     void test_find_date_on_Windows() {
         if (OSType.isWindows()) {
-            CommandFindingResult cfr = CommandFinder.where("date");
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.where("date");
             printCFR("test_find_date_on_Windows", cfr);
             assertEquals(0, cfr.returncode());
         }
     }
 
-    private void printCFR(String label, CommandFindingResult cfr) {
+    private void printCFR(String label, CommandLocatingResult cfr) {
         System.out.println("-------- " + label + " --------");
         System.out.println(cfr.toString());
     }

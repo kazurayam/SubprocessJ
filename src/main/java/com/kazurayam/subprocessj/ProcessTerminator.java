@@ -142,10 +142,10 @@ public class ProcessTerminator {
         public String toString() {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(new BufferedWriter(sw));
-            pw.println("<ptr rc=\"" + this.returncode() + "\">");
+            pw.println("<process-termination-result rc=\"" + this.returncode() + "\">");
             pw.println("<message>" + this.message() + "</message>");
             this.getProcessFindingResult().ifPresent(pw::print);
-            pw.println("</ptr>");
+            pw.println("</process-termination-result>");
             pw.flush();
             pw.close();
             return sw.toString();
