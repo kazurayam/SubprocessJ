@@ -1,10 +1,13 @@
 package com.kazurayam.subprocessj;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -92,7 +95,7 @@ public class Subprocess {
         }
         if (! currentWorkingDirectory.isDirectory()) {
             throw new IllegalArgumentException(currentWorkingDirectory.getName() +
-                    "is not a directory");
+                    " is not a directory");
         }
         this.cwd =  currentWorkingDirectory;
         return this;
@@ -221,6 +224,56 @@ public class Subprocess {
          */
         public List<String> stderr() {
             return this.stderr;
+        }
+
+        @Override
+        public String toString() {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(new BufferedWriter(sw));
+            pw.println(String.format("<completed-process rc=\"%d\">", this.returncode()));
+            pw.print("<command>");
+            int count = 0;
+            for (String arg : args) {
+                if (count > 0) {
+                    pw.print(" ");
+                }
+                if (arg.contains(" ")) {
+                    pw.print("\"");
+                    pw.print(arg);
+                    pw.print("\"");
+                } else {
+                    pw.print(arg);
+                }
+                count += 1;
+            }
+            pw.println("</command>");
+            //
+            pw.print("<stdout>");
+            if (this.stdout().size() == 1) {
+                pw.print(this.stdout().get(0).trim());
+            } else {
+                pw.println();
+                for (String line : this.stdout()) {
+                    pw.println(line.trim());
+                }
+            }
+            pw.println("</stdout>");
+            //
+            pw.print("<stderr>");
+            if (this.stderr().size() == 1) {
+                pw.print(this.stderr().get(0).trim());
+            } else {
+                pw.println();
+                for (String line : this.stderr()) {
+                    pw.println(line.trim());
+                }
+            }
+            pw.println("</stdout>");
+            //
+            pw.println("</completed-process>");
+            pw.flush();
+            pw.close();
+            return sw.toString();
         }
     }
 
