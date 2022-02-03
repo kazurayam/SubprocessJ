@@ -10,18 +10,17 @@ import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
  * E.g, on my MacBook, "/usr/local/bin/docker", not "docker"
  * on Windows, it could be something like "C:\\Program File\\docke\\docker.exe"
  */
-public class DockerCommandFinder {
+public class DockerCommandLocator {
 
     public static CommandLocatingResult find() {
-        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("docker");
-        return cfr;
+        return CommandLocator.find("docker");
     }
 
-    public static CommandLocator.CommandLocatingResult where() {
+    public static CommandLocatingResult where() {
         return find();
     }
 
-    public static CommandLocator.CommandLocatingResult which() {
+    public static CommandLocatingResult which() {
         return find();
     }
 

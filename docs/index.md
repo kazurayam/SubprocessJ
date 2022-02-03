@@ -1,3 +1,6 @@
+<!-- START doctoc -->
+<!-- END doctoc -->
+
 # subprocessj
 
 ## What is this?
@@ -39,7 +42,7 @@ In order to achieve this, I developed `ProcessTerminator` and some helpers.
 
 Javadoc is [here](https://kazurayam.github.io/subprocessj/api/index.html).
 
-## Examples
+## How to use Subprocess class
 
 ### Starting a process
 
@@ -211,7 +214,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-    public class CommandFinderTest {
+    public class CommandLocatorTest {
 
         /**
          * The returned value depends on the runtime environment.
@@ -224,7 +227,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
          */
         @Test
         void test_find_git_is_found() {
-            CommandFindingResult cfr = CommandFinder.find("git");
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
             printCFR("test_find_git_is_found", cfr);
             assertEquals(0, cfr.returncode());
         }
@@ -234,7 +237,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
          */
         @Test
         void test_which_git() {
-            CommandFindingResult cfr = CommandFinder.which("git");
+            CommandLocatingResult cfr = CommandLocator.which("git");
             printCFR("test_which_git", cfr);
             assertEquals(0, cfr.returncode());
         }
@@ -244,7 +247,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
          */
         @Test
         void test_where_git() {
-            CommandFindingResult cfr = CommandFinder.where("git");
+            CommandLocatingResult cfr = CommandLocator.where("git");
             printCFR("test_where_git", cfr);
             assertEquals(0, cfr.returncode());
         }
@@ -254,7 +257,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
          */
         @Test
         void test_find_tiger_not_exists() {
-            CommandFindingResult cfr = CommandFinder.find("tiger");
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
             printCFR("test_find_tiger_not_exists", cfr);
             assertNotEquals(0, cfr.returncode());
         }
@@ -270,13 +273,13 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
         @Test
         void test_find_date_on_Windows() {
             if (OSType.isWindows()) {
-                CommandFindingResult cfr = CommandFinder.where("date");
+                CommandLocator.CommandLocatingResult cfr = CommandLocator.where("date");
                 printCFR("test_find_date_on_Windows", cfr);
                 assertEquals(0, cfr.returncode());
             }
         }
 
-        private void printCFR(String label, CommandFindingResult cfr) {
+        private void printCFR(String label, CommandLocatingResult cfr) {
             System.out.println("-------- " + label + " --------");
             System.out.println(cfr.toString());
         }
@@ -369,6 +372,90 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
         @Test
         void test_getOSType() {
             assertTrue(OSType.isMac() || OSType.isUnix() || OSType.isWindows());
+        }
+    }
+
+## Starting/finding/stopping Docker Container from Java
+
+I have made a docker image which contains a HTTP server application made in Python. I want to use this server locally while I execute tests scripts using Selenium Webdriver in Java on top of JUnit 5. For this purpose, I have developed a set of Java classes:
+
+-   [`com.kazurayam.subprocessj.docker.ContainerRunner`](../src/main/java/com/kazurayam/subprocessj/docker/ContainerRunner.java) executes `docker run` command to start a process for Docker container.
+
+-   [`com.kazurayam.subprocessj.docker.ContainerFinder`](../src/main/java/com/kazurayam/subprocessj/docker/ContainerFinder.java) executes `docker ps` command to retrieve running docker containers.
+
+-   [`com.kazurayam.subprocessj.docker.ContainerStopper`](../src/main/java/com/kazurayam/subprocessj/docker/ContainerStopper.java) executes `docker stop` command to stop a container process.
+
+-   [`com.kazurayam.subprocessj.docker.DockerCommandLocator`](../src/main/java/com/kazurayam/subprocessj/docker/DockerCommandLocator.java) looks up the path of `docker` command executable.
+
+The following JUnit5 test shows a typical example how to utilize the `com.kazurayam.subprocess.docker` package.
+
+    package com.kazurayam.subprocessj.docker;
+
+    import com.kazurayam.subprocessj.docker.model.ContainerId;
+    import com.kazurayam.subprocessj.docker.model.DockerImage;
+    import org.junit.jupiter.api.AfterAll;
+    import org.junit.jupiter.api.BeforeAll;
+    import org.junit.jupiter.api.Test;
+
+    import java.io.File;
+    import java.io.IOException;
+    import java.nio.file.Files;
+
+    import com.kazurayam.subprocessj.docker.ContainerFinder.ContainerFindingResult;
+    import com.kazurayam.subprocessj.docker.ContainerRunner.ContainerRunningResult;
+    import com.kazurayam.subprocessj.docker.ContainerStopper.ContainerStoppingResult;
+    import com.kazurayam.subprocessj.docker.model.PublishedPort;
+    import static org.junit.jupiter.api.Assertions.assertEquals;
+    import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+    public class ContainerStartFindStopTest {
+
+        private static final int HOST_PORT = 3080;
+
+        private static final PublishedPort publishedPort = new PublishedPort(HOST_PORT, 8080);
+        private static final DockerImage image = new DockerImage("kazurayam/flaskr-kazurayam:1.1.0");
+
+        @BeforeAll
+        public static void beforeAll() throws IOException, InterruptedException {
+            File directory = Files.createTempDirectory("ContainerFinderTest").toFile();
+            ContainerRunningResult crr =
+                    ContainerRunner.runContainerAtHostPort(directory, publishedPort, image);
+            if (crr.returncode() != 0) {
+                throw new IllegalStateException(crr.toString());
+            }
+        }
+
+        @AfterAll
+        public static void afterAll() throws IOException, InterruptedException {
+            ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT);
+            if (cfr.returncode() == 0) {
+                ContainerId containerId = cfr.containerId();
+                ContainerStoppingResult csr = ContainerStopper.stopContainer(containerId);
+                if (csr.returncode() != 0) {
+                    throw new IllegalStateException(csr.toString());
+                }
+            } else {
+                throw new IllegalStateException(cfr.toString());
+            }
+        }
+
+        @Test
+        public void test_findByHostPort_found() throws IOException, InterruptedException {
+            ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT);
+            printResult("test_findingByHostPort_found", cfr);
+            assertEquals(0, cfr.returncode());
+        }
+
+        @Test
+        public void test_findByHostPort_notFound() throws IOException, InterruptedException {
+            ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT + 1);
+            printResult("test_findingByHostPort_notFound", cfr);
+            assertNotEquals(0, cfr.returncode());
+        }
+
+        private void printResult(String label, ContainerFindingResult cfr) {
+            System.out.println("-------- " + label + " --------");
+            System.out.println(cfr.toString());
         }
     }
 

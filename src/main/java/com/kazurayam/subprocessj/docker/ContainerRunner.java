@@ -36,9 +36,9 @@ public class ContainerRunner {
         Objects.requireNonNull(publishedPort);
         Objects.requireNonNull(image);
         //
-        CommandLocatingResult commfr = DockerCommandFinder.find();
-        if (commfr.returncode() == 0) {
-            String dockerCommand = commfr.stdout().get(0).trim();  //  e.g, "/usr/local/bin/docker"
+        CommandLocatingResult clr = DockerCommandLocator.find();
+        if (clr.returncode() == 0) {
+            String dockerCommand = clr.stdout().get(0).trim();  //  e.g, "/usr/local/bin/docker"
             List<String> args = Arrays.asList(
                     dockerCommand, "run", "-d",
                     "-p", publishedPort.hostPort() + ":" + publishedPort.containerPort(),
@@ -55,7 +55,7 @@ public class ContainerRunner {
             }
             return crr;
         } else {
-            throw new IllegalStateException(commfr.toString());
+            throw new IllegalStateException(clr.toString());
         }
     }
 

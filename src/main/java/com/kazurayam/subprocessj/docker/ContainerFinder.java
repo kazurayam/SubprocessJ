@@ -1,6 +1,6 @@
 package com.kazurayam.subprocessj.docker;
 
-import com.kazurayam.subprocessj.CommandLocator;
+import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
 import com.kazurayam.subprocessj.Subprocess;
 import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
 import com.kazurayam.subprocessj.docker.model.ContainerId;
@@ -35,9 +35,9 @@ public class ContainerFinder {
     public static ContainerFindingResult findContainerByHostPort(int hostPort)
             throws IOException, InterruptedException
     {
-        CommandLocator.CommandLocatingResult commfr = DockerCommandFinder.find();
-        if (commfr.returncode() == 0) {
-            String dockerCommand = commfr.stdout().get(0).trim();
+        CommandLocatingResult clr = DockerCommandLocator.find();
+        if (clr.returncode() == 0) {
+            String dockerCommand = clr.stdout().get(0).trim();
             List<String> args = Arrays.asList(
                     dockerCommand, "ps",
                     "--filter", "publish=" + hostPort,
@@ -45,23 +45,23 @@ public class ContainerFinder {
                     "-q"
             );
             CompletedProcess cp = new Subprocess().run(args);
-            ContainerFindingResult contfr = new ContainerFindingResult(cp);
+            ContainerFindingResult cfr = new ContainerFindingResult(cp);
             if (cp.returncode() == 0) {
                 if (cp.stdout().size() == 1) {
                     ContainerId containerId = new ContainerId(cp.stdout().get(0).trim());
-                    contfr.setContainerId(containerId);
-                    contfr.setReturncode(0);
+                    cfr.setContainerId(containerId);
+                    cfr.setReturncode(0);
                 } else {
-                    contfr.setMessage("no container found; or 2 or more containers found.");
-                    contfr.setReturncode(-1);
+                    cfr.setMessage("no container found; or 2 or more containers found.");
+                    cfr.setReturncode(-1);
                 }
             } else {
-                contfr.setMessage("docker ps command failed somehow");
-                contfr.setReturncode(cp.returncode());
+                cfr.setMessage("docker ps command failed somehow");
+                cfr.setReturncode(cp.returncode());
             }
-            return contfr;
+            return cfr;
         } else {
-            throw new IllegalStateException("docker command is not installed; " + commfr.toString());
+            throw new IllegalStateException("docker command is not installed; " + clr.toString());
         }
     }
 

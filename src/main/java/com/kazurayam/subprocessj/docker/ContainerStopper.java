@@ -28,9 +28,9 @@ public class ContainerStopper {
             throws IOException, InterruptedException
     {
         Objects.requireNonNull(containerId);
-        CommandLocator.CommandLocatingResult commfr = DockerCommandFinder.find();
-        if (commfr.returncode() == 0) {
-            String dockerCommand = commfr.stdout().get(0).trim();
+        CommandLocator.CommandLocatingResult clr = DockerCommandLocator.find();
+        if (clr.returncode() == 0) {
+            String dockerCommand = clr.stdout().get(0).trim();
             List<String> args = Arrays.asList(
                     dockerCommand, "stop", containerId.id()
             );
@@ -45,7 +45,7 @@ public class ContainerStopper {
             }
             return csr;
         } else {
-            throw new IllegalStateException(commfr.toString());
+            throw new IllegalStateException(clr.toString());
         }
     }
 

@@ -16,40 +16,40 @@ public class CommandLocator {
         if (command.length() == 0) {
             throw new IllegalArgumentException("command must not be 0-length");
         }
-        CommandLocatingResult cfr = new CommandLocatingResult();
+        CommandLocatingResult clr = new CommandLocatingResult();
         try {
             if (OSType.isWindows()) {
                 CompletedProcess cp = new Subprocess().run(Arrays.asList("where", command));
                 List<String> normalizedStdout = normalize(cp.stdout());
                 if (normalizedStdout.size() > 0) {
-                    cfr.setReturncode(0);
+                    clr.setReturncode(0);
                 } else {
-                    cfr.setReturncode(-1);
+                    clr.setReturncode(-1);
                 }
-                cfr.addAllStdout(cp.stdout());
-                cfr.addAllStderr(cp.stderr());
+                clr.addAllStdout(cp.stdout());
+                clr.addAllStderr(cp.stderr());
             } else if (OSType.isMac() || OSType.isUnix()) {
                 CompletedProcess cp = new Subprocess().run(Arrays.asList("which", command));
                 List<String> normalizedStdout = normalize(cp.stdout());
                 if (normalizedStdout.size() > 0) {
-                    cfr.setReturncode(0);
+                    clr.setReturncode(0);
                 } else {
-                    cfr.setReturncode(-1);
+                    clr.setReturncode(-1);
                 }
-                cfr.addAllStdout(cp.stdout());
-                cfr.addAllStderr(cp.stderr());
+                clr.addAllStdout(cp.stdout());
+                clr.addAllStderr(cp.stderr());
             } else {
-                cfr.setReturncode(-701);
-                cfr.addAllStderr(Arrays.asList("unsupported OSType=" + OSType.getOSType()));
+                clr.setReturncode(-701);
+                clr.addAllStderr(Arrays.asList("unsupported OSType=" + OSType.getOSType()));
             }
         } catch (IOException e) {
-            cfr.setReturncode(-702);
-            cfr.addAllStderr(Arrays.asList(e.getMessage()));
+            clr.setReturncode(-702);
+            clr.addAllStderr(Arrays.asList(e.getMessage()));
         } catch (InterruptedException e) {
-            cfr.setReturncode(-703);
-            cfr.addAllStderr(Arrays.asList(e.getMessage()));
+            clr.setReturncode(-703);
+            clr.addAllStderr(Arrays.asList(e.getMessage()));
         }
-        return cfr;
+        return clr;
     }
 
     public static CommandLocatingResult which(String command) {
