@@ -43,11 +43,11 @@
 
 ## Motivation
 
-There are many articles that tell how to use [`java.lang.ProcessBuilder`](https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html). For example, I learned ["Baeldung article: Run Shell Command in Java"](https://www.baeldung.com/run-shell-command-in-java). The ProcessBuilder class is a state of the art with rich set of functionalities. But for me it is not very easy to write a program that utilized ProcessBuilder. It involves multi-threading to consume the output streams (STDOUT and STDERR) from subprocess. I do not want to repeat writing it.
+There are many articles that tell how to use [`java.lang.ProcessBuilder`](https://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html). For example, I learned ["Baeldung article: Run Shell Command in Java"](https://www.baeldung.com/run-shell-command-in-java). The ProcessBuilder class is a state of the art with rich set of functionalities. But it is not easy for me to write a program that utilized ProcessBuilder. It involves multi-threading to consume the output streams (STDOUT and STDERR) from subprocess. I do not want to repeat writing it.
 
 So I have made a simple wrapper of ProcessBuilder which exposes a limited subset of its functionalities.
 
-I named this as `subprocjessj` as I meant it to be a homage to the [Subprocess](https://docs.python.org/3/library/subprocess.html) module of Python.
+I named this as `subprocessj` as I meant it to be a homage to the [Subprocess](https://docs.python.org/3/library/subprocess.html) module of Python.
 
 I wanted to use `Subprocess` to start and stop an HTTP server inside
 a JUnit test for my Java application.
@@ -60,7 +60,7 @@ In order to achieve this, I developed `ProcessTerminator` and some helpers.
 
 Javadoc is [here](https://kazurayam.github.io/subprocessj/api/index.html).
 
-## How to use Subprocess class
+## Example of using Subprocess classes
 
 ### Starting a process
 
@@ -150,7 +150,7 @@ This will emit the following output in the console:
 
 ### Stopping a process
 
-Using `java.lang.ProcessBuilder` class, you can create an `java.lang.Process` in which arbitrary application can run. Suppose you created a process in which a HTTP Server runs. The process will stay running long until you explicitly stop it. But how can you stop that process?
+Using `java.lang.ProcessBuilder` class, you can create a `java.lang.Process` in which arbitrary application can run. Suppose you created a process in which HTTP Server runs. The process will stay running long until you explicitly stop it. But how can you stop that process?
 
 Sometimes I encounter a new HTTP Server fails to start because the IP port is already in use. It tends to happen because I am not careful enough to stop the previous server process which is hanging on the IP port. In such situation, I have to do, on Mac, the following operations:
 
@@ -221,7 +221,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
 @AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
 
-### Finding the path of a command
+### Finding the path of an OS command
 
     package com.kazurayam.subprocessj;
 
@@ -393,89 +393,93 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
         }
     }
 
-## Starting/finding/stopping Docker Container from Java
+## Automated UI Test using WebDriver backed by Docker Container
 
-I have made a docker image which contains a HTTP server application made in Python. I want to use this server locally while I execute tests scripts using Selenium Webdriver in Java on top of JUnit 5. For this purpose, I have developed a set of Java classes:
+### Problem to solve
 
--   [`com.kazurayam.subprocessj.docker.ContainerRunner`](../src/main/java/com/kazurayam/subprocessj/docker/ContainerRunner.java) executes `docker run` command to start a process for Docker container.
+I am interested in automating Web UI testing in Java/Groovy using Selenium WebDriver. At the same time, I am interested in developing Web Server applications in Python. So I want to execute UI tests written in Java against my Web Application written in Python. Of course, I can do it by the following manual operations.
 
--   [`com.kazurayam.subprocessj.docker.ContainerFinder`](../src/main/java/com/kazurayam/subprocessj/docker/ContainerFinder.java) executes `docker ps` command to retrieve running docker containers.
+In a Terminal on Mac, I start a Docker container by
 
--   [`com.kazurayam.subprocessj.docker.ContainerStopper`](../src/main/java/com/kazurayam/subprocessj/docker/ContainerStopper.java) executes `docker stop` command to stop a container process.
+    $ cd ~/tmp
+    $ docker run -d -p 80:8080 kazurayam/flaskr-kazurayam:1.1.0
 
--   [`com.kazurayam.subprocessj.docker.DockerCommandLocator`](../src/main/java/com/kazurayam/subprocessj/docker/DockerCommandLocator.java) looks up the path of `docker` command executable.
+I will open another Terminal, and execute UI tests by
 
-The following JUnit5 test shows a typical example how to utilize the `com.kazurayam.subprocess.docker` package.
+    $ cd $projectDir
+    $ gradle test
+    ....
 
-    package com.kazurayam.subprocessj.docker;
+When the test has finished, I will go back to the 1st terminal window. I will identify the process id of the docker container:
 
-    import com.kazurayam.subprocessj.docker.model.ContainerId;
-    import com.kazurayam.subprocessj.docker.model.DockerImage;
-    import org.junit.jupiter.api.AfterAll;
-    import org.junit.jupiter.api.BeforeAll;
-    import org.junit.jupiter.api.Test;
+    $ docker ps --filter publish=80 --filter status=running -q
+    fd5ad3b76b13
 
-    import java.io.File;
-    import java.io.IOException;
-    import java.nio.file.Files;
+Once I find the pid, I can stop the process gracefully by:
 
-    import com.kazurayam.subprocessj.docker.ContainerFinder.ContainerFindingResult;
-    import com.kazurayam.subprocessj.docker.ContainerRunner.ContainerRunningResult;
-    import com.kazurayam.subprocessj.docker.ContainerStopper.ContainerStoppingResult;
-    import com.kazurayam.subprocessj.docker.model.PublishedPort;
-    import static org.junit.jupiter.api.Assertions.assertEquals;
-    import static org.junit.jupiter.api.Assertions.assertNotEquals;
+    $ docker stop fd5ad3b76b13
 
-    public class ContainerStartFindStopTest {
+This procedure is not difficult. But it is cumbersome, easy to make mistakes. I often forget terminating the previous docker container, and try to start another one. Then I get an error saying "the IP port is already in use". Just frustrating.
 
-        private static final int HOST_PORT = 3080;
+So, I want to automate starting and stopping any Docker Container on the localhost by my test code in Java.
 
-        private static final PublishedPort publishedPort = new PublishedPort(HOST_PORT, 8080);
-        private static final DockerImage image = new DockerImage("kazurayam/flaskr-kazurayam:1.1.0");
+### Solution
 
-        @BeforeAll
-        public static void beforeAll() throws IOException, InterruptedException {
-            File directory = Files.createTempDirectory("ContainerFinderTest").toFile();
-            ContainerRunningResult crr =
-                    ContainerRunner.runContainerAtHostPort(directory, publishedPort, image);
-            if (crr.returncode() != 0) {
-                throw new IllegalStateException(crr.toString());
-            }
-        }
+I have developed a code in Java using JUnit 5, which does the following:
 
-        @AfterAll
-        public static void afterAll() throws IOException, InterruptedException {
-            ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT);
-            if (cfr.returncode() == 0) {
-                ContainerId containerId = cfr.containerId();
-                ContainerStoppingResult csr = ContainerStopper.stopContainer(containerId);
-                if (csr.returncode() != 0) {
-                    throw new IllegalStateException(csr.toString());
-                }
-            } else {
-                throw new IllegalStateException(cfr.toString());
-            }
-        }
+-   This test visits and tests a URL "http://127.0.0.1:3080/" using Selenium WebDriver.
 
-        @Test
-        public void test_findByHostPort_found() throws IOException, InterruptedException {
-            ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT);
-            printResult("test_findingByHostPort_found", cfr);
-            assertEquals(0, cfr.returncode());
-        }
+-   The URL is served by a process on the localhost, in which a Docker Container runs using a docker image which kazurayam published.
 
-        @Test
-        public void test_findByHostPort_notFound() throws IOException, InterruptedException {
-            ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT + 1);
-            printResult("test_findingByHostPort_notFound", cfr);
-            assertNotEquals(0, cfr.returncode());
-        }
+-   The web app was originally developed in Python language by the Pallets project, is published at [flaskr tutorial](https://flask.palletsprojects.com/en/2.0.x/tutorial/)
 
-        private void printResult(String label, ContainerFindingResult cfr) {
-            System.out.println("-------- " + label + " --------");
-            System.out.println(cfr.toString());
-        }
-    }
+-   This test automates running and stopping a Docker Container process using commandline commands: `docker run`, `docker ps` and `docker stop`.
+
+-   The [`com.kazurayam.subprocessj.docker.ContainerRunner`](https://github.com/kazurayam/subprocessj/blob/master/src/main/java/com/kazurayam/subprocessj/docker/ContainerRunner.java) class wraps the "docker run" command.
+
+-   The [`com.kazurayam.subprocessj.docker.ContainerFinder`](https://github.com/kazurayam/subprocessj/blob/master/src/main/java/com/kazurayam/subprocessj/docker/ContainerFinder.java) class wraps the "docker ps" command.
+
+-   The [`com.kazurayam.subprocessj.docker.ContainerStopper`](https://github.com/kazurayam/subprocessj/blob/master/src/main/java/com/kazurayam/subprocessj/docker/ContainerStopper.java) class wraps the "docker stop" command.
+
+-   These classes call [`java.lang.ProcessBuilder`](https://www.baeldung.com/java-lang-processbuilder-api) to execute the `docker` command from Java.
+
+-   The [`com.kazurayam.subprocessj.Subprocess`](https://github.com/kazurayam/subprocessj/blob/master/src/main/java/com/kazurayam/subprocessj/Subprocess.java) class wraps the `ProcessBuilder` and provides a simple API for Java application with work with OS commands.
+
+### Description
+
+#### Sequence diagram
+
+The following diagram shows the sequence.
+
+![sequence](diagrams/out/DockerBackedWebDriverTest_sequence.png)
+
+#### Sample code
+
+-   [example.DockerBackedWebDriverTest](https://github.com/kazurayam/subprocessj/blob/master/src/test/java/example/DockerBackedWebDriverTest.java)
+
+<!-- -->
+
+    link:https://github.com/kazurayam/subprocessj/blob/master/src/test/java/example/DockerBackedWebDriverTest.java[DeockerBackedWebDriverTest]
+
+### How to reuse this
+
+See [build.gradle](https://github.com/kazurayam/subprocessj/blob/master/build.gradle)
+
+### Conclusion
+
+I wanted to perform automated Web UI testings written in Java/Groovy against a web application written in Python. The [Subprocessj 0.3.0](https://mvnrepository.com/artifact/com.kazurayam/subprocessj) library made it possible for me. I am contented with it.
+
+### References for Docker
+
+-   [forum.docker.com, “docker run” cannot be killed with ctrl+c](https://forums.docke.com/t/docker-run-cannot-be-killed-with-ctrl-c/13108/)
+
+-   [docker ps command](https://matsuand.github.io/docs.docker.jp.onthefly/engine/reference/commandline/ps/)
+
+-   [docker run command](https://docs.docker.com/engine/reference/commandline/run/)
+
+-   [docker stop command](https://matsuand.github.io/docs.docker.jp.onthefly/engine/reference/commandline/stop/)
+
+-   [subprocessj project top](https://github.com/kazurayam/subprocessj)
 
 ## links
 
