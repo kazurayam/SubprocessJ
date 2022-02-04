@@ -6,15 +6,14 @@
   - [What is this?](#what-is-this)
   - [Motivation](#motivation)
   - [API](#api)
-  - [How to use Subprocess class](#how-to-use-subprocess-class)
+  - [Example of using Subprocess classes](#example-of-using-subprocess-classes)
     - [Starting a process](#starting-a-process)
     - [Stopping a process](#stopping-a-process)
-    - [Finding the path of a command](#finding-the-path-of-a-command)
+    - [Finding the path of an OS command](#finding-the-path-of-an-os-command)
     - [Finding process id](#finding-process-id)
       - [Finding the pid of the current JVM](#finding-the-pid-of-the-current-jvm)
       - [Finding the pid of a process which is listening to a specific IP port](#finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port)
     - [Identifying OS Type](#identifying-os-type)
-  - [Starting/finding/stopping Docker Container from Java](#startingfindingstopping-docker-container-from-java)
   - [links](#links)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
