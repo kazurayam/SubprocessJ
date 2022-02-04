@@ -1,4 +1,4 @@
-# Running and stopping a Docker Container via command line from a JUnit test
+# Automated UI Test using WebDriver backed by Docker Container
 
 TODO
 
