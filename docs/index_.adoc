@@ -189,7 +189,7 @@ image::diagrams/out/DockerBackedWebDriverTest_sequence.png[sequence]
 
 [soure,java]
 ----
-include::https://github.com/kazurayam/subprocessj/blob/master/src/test/java/example/DockerBackedWebDriverTest.java[DeockerBackedWebDriverTest]
+include::../src/test/java/example/DockerBackedWebDriverTest.java[DockerBackedWebDriverTest]
 ----
 
 === How to reuse this
