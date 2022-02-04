@@ -9,8 +9,11 @@
 # How to active this: in the command line, just type
 # `> ./indexconv.sh`
 #
-# Can generate Table of content in the output *.md file by specifying `-t` option
+# Can generate Table Of Content (TOC) in the output *.md file by specifying `-t` option
 # `> ./indexconv.sh -t`
+#
+# To generate TOC, will use the "technote-space/toc-generator" as described at
+# https://qiita.com/technote-space/items/59520dfa47504c558805
 
 requireTOC=false
 
@@ -31,12 +34,14 @@ find . -iname "*.adoc" -maxdepth 1 -type f  -not -name "_*.adoc" | while read fn
     echo "converting $fname into $target"
     # converting a *.adoc into a docbook
     asciidoctor -b docbook -a leveloffset=+1 -o - "$fname" > "$xml"
+    cat "$xml" | pandoc --markdown-headings=atx --wrap=preserve -t markdown_strict -f docbook - > "$target"
     if [ $requireTOC = true ]; then
-      # generate a Markdown file with Table of contents
-      cat "$xml" | pandoc --standalone --toc --markdown-headings=atx --wrap=preserve -t markdown_strict -f docbook - > "$target"
-    else
-      # without TOC
-      cat "$xml" | pandoc --markdown-headings=atx --wrap=preserve -t markdown_strict -f docbook - > "$target"
+      # Insert the placeholder for TOC into the Markdown document to locate TOC
+      echo -e "<!-- START doctoc -->\n<!-- END doctoc -->\n" > TOC_placeholder
+      cat TOC_placeholder "$target" > with_TOC
+      cat with_TOC > "$target"
+      rm TOC_placeholder
+      rm with_TOC
     fi
     echo deleting $xml
     rm -f "$xml"
