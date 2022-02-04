@@ -1,5 +1,63 @@
-# Automated UI Test using WebDriver backed by Docker Container
+= Automated UI Test using WebDriver backed by Docker Container
 
-TODO
+@author kazurayam
+@date 4 Feb, 2022
 
+== Problem to solve
+
+
+== Solution
+
+I have developed a code in Java using JUnit 5, which does the following:
+
+* This test visits and tests a URL "http://127.0.0.1:3080/" using Selenium WebDriver.
+
+* The URL is served by a process on the localhost, in which a Docker Container runs using a docker image which kazurayam published.
+
+* The web app was originally developed in Python language by the Pallets project, is published at link:https://flask.palletsprojects.com/en/2.0.x/tutorial/[flaskr tutorial]
+
+* This test automates running and stopping a Docker Container process using commandline commands: `docker run`, `docker ps` and `docker stop`.
+
+* The https://github.com/kazurayam/subprocessj/blob/master/src/main/java/com/kazurayam/subprocessj/docker/ContainerRunner.java[`com.kazurayam.subprocessj.docker.ContainerRunner`] class wraps the "docker run" command.
+
+* The https://github.com/kazurayam/subprocessj/blob/master/src/main/java/com/kazurayam/subprocessj/docker/ContainerFinder.java[`com.kazurayam.subprocessj.docker.ContainerFinder`] class wraps the "docker ps" command.
+
+* The https://github.com/kazurayam/subprocessj/blob/master/src/main/java/com/kazurayam/subprocessj/docker/ContainerStopper.java[`com.kazurayam.subprocessj.docker.ContainerStopper`] class wraps the "docker stop" command.
+
+* These classes call https://www.baeldung.com/java-lang-processbuilder-api[`java.lang.ProcessBuilder`] to execute the `docker` command from Java.
+
+* The https://github.com/kazurayam/subprocessj/blob/master/src/main/java/com/kazurayam/subprocessj/Subprocess.java[`com.kazurayam.subprocessj.Subprocess`] class wraps the `ProcessBuilder` and provides a simple API for Java application with work with OS commands.
+
+== Description
+
+=== Sequence diagram
+
+The following diagram shows the sequence.
+
+image::diagrams/out/DockerBackedWebDriverTest_sequence.png[sequence]
+
+=== Code
+
+* link:https://github.com/kazurayam/subprocessj/blob/master/src/test/java/example/DockerBackedWebDriverTest.java[example.DockerBackedWebDriverTest]
+
+[soure,java]
+----
+include::https://github.com/kazurayam/subprocessj/blob/master/src/test/java/example/DockerBackedWebDriverTest.java[DeockerBackedWebDriverTest]
+----
+
+== How to reuse this
+
+See https://github.com/kazurayam/subprocessj/blob/master/build.gradle[build.gradle]
+
+== Conclusion
+
+I wanted to perform automated Web UI testings written in Java/Groovy against a web application written in Python. The https://mvnrepository.com/artifact/com.kazurayam/subprocessj[Subprocessj 0.3.0] library made it possible for me. I am contented with it.
+
+== References
+
+* https://forums.docke.com/t/docker-run-cannot-be-killed-with-ctrl-c/13108/[forum.docker.com, “docker run” cannot be killed with ctrl+c]
+* https://matsuand.github.io/docs.docker.jp.onthefly/engine/reference/commandline/ps/[docker ps command]
+* https://docs.docker.com/engine/reference/commandline/run/[docker run command]
+* https://matsuand.github.io/docs.docker.jp.onthefly/engine/reference/commandline/stop/[docker stop command]
+* https://github.com/kazurayam/subprocessj[subprocessj project top]
 

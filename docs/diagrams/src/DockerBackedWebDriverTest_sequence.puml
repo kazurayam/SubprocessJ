@@ -1,0 +1,22 @@
+@startuml sequence
+actor       Tester             as tester
+participant "JUnit test"       as script
+participant WebDriver          as driver
+participant Browser            as browser
+participant "Docker Container" as docker
+participant "http://127.0.0.1:port/" as site
+tester   -> script     : run
+script   -> docker     : docker run
+docker   -> site       : startup
+script   -> driver     : new WebDriver()
+driver   -> browser    : open window
+script   -> browser    : navigate to URL
+browser  -> site       : navigate to URL
+site     -> script     : respond
+script   -> script     : verify HTML
+script   -> driver     : quit()
+driver   -> browser    : close window
+script   -> docker     : docker stop
+docker   -> site       : shutdown
+script   -> tester     : say done
+@enduml

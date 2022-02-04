@@ -1,6 +1,3 @@
-<!-- START doctoc -->
-<!-- END doctoc -->
-
 # subprocessj
 
 ## What is this?

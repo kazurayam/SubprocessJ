@@ -6,7 +6,7 @@ package com.kazurayam.subprocessj.docker.model;
  * <PRE>
  * $ docker ps
  * CONTAINER ID   IMAGE                              COMMAND                  CREATED         STATUS         PORTS                  NAMES
- * d4d4a795d76d   kazurayam/flaskr-kazurayam:1.1.0   "waitress-serve --po…"   9 seconds ago   Up 8 seconds   0.0.0.0:80->8080/tcp   serene_cannon
+ * d4d4a795d76d   kazurayam/flaskr-kazurayam:1.1.0   "waitress-serve --po…"   9 seconds ago   Up 8 seconds   0.0.0.0:80-&gt;8080/tcp   serene_cannon
  * </PRE>
  *
  * At the moment, I am interested only 3 items: container-id, port and image.
