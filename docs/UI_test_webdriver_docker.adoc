@@ -1,0 +1,5 @@
+# Running and stopping a Docker Container via command line from a JUnit test
+
+TODO
+
+
