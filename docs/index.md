@@ -1,3 +1,32 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [subprocessj](#subprocessj)
+  - [What is this?](#what-is-this)
+  - [Motivation](#motivation)
+  - [API](#api)
+  - [Example of using Subprocess classes](#example-of-using-subprocess-classes)
+    - [Starting a process](#starting-a-process)
+    - [Stopping a process](#stopping-a-process)
+    - [Finding the path of an OS command](#finding-the-path-of-an-os-command)
+    - [Finding process id](#finding-process-id)
+      - [Finding the pid of the current JVM](#finding-the-pid-of-the-current-jvm)
+      - [Finding the pid of a process which is listening to a specific IP port](#finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port)
+    - [Identifying OS Type](#identifying-os-type)
+  - [Automated UI Test using WebDriver backed by Docker Container](#automated-ui-test-using-webdriver-backed-by-docker-container)
+    - [Problem to solve](#problem-to-solve)
+    - [Solution](#solution)
+    - [Description](#description)
+      - [Sequence diagram](#sequence-diagram)
+      - [Sample code](#sample-code)
+    - [How to reuse this](#how-to-reuse-this)
+    - [Conclusion](#conclusion)
+    - [References for Docker](#references-for-docker)
+  - [links](#links)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # subprocessj
 
 ## What is this?
