@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CommandLocatorTest {
 
@@ -15,14 +14,23 @@ public class CommandLocatorTest {
      * On Mac, this will return
      * <PRE>/usr/local/bin/git</PRE>
      *
-     * On Windows, may be if the "Git for Windows" is installed.
-     * If not, it will return rc=-1.
+     * On Windows, may be
+     * <PRE>C:\Program Files\Git\cmd\git.exe</PRE>
+     * if the "Git for Windows" is installed.
+     *
+     * However, if you execute this test in the "Git Bash" shell, there could be 2 git.exe
+     * <PRE>
+     * C:\Program Files\Git\mingw64\bin\git.exe
+     * C:\Program Files\Git\cmd\git.exe
+     * </PRE>
+     *
+     * If "git" is not, it will return rc=-1.
      */
     @Test
     void test_find_git_is_found() {
         CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
         printCFR("test_find_git_is_found", cfr);
-        assertEquals(0, cfr.returncode());
+        assertTrue(cfr.returncode() == 0 || cfr.returncode() == -2);
     }
 
     /**
@@ -32,7 +40,7 @@ public class CommandLocatorTest {
     void test_which_git() {
         CommandLocatingResult cfr = CommandLocator.which("git");
         printCFR("test_which_git", cfr);
-        assertEquals(0, cfr.returncode());
+        assertTrue(cfr.returncode() == 0 || cfr.returncode() == -2);
     }
 
     /**
@@ -42,7 +50,7 @@ public class CommandLocatorTest {
     void test_where_git() {
         CommandLocatingResult cfr = CommandLocator.where("git");
         printCFR("test_where_git", cfr);
-        assertEquals(0, cfr.returncode());
+        assertTrue(cfr.returncode() == 0 || cfr.returncode() == -2);
     }
 
     /**

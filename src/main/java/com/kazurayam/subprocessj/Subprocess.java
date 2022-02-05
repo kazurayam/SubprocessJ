@@ -180,6 +180,8 @@ public class Subprocess {
      */
     public static final class CompletedProcess {
 
+        public static CompletedProcess NULL_OBJECT = new CompletedProcess(new ArrayList<String>());
+
         private final List<String> args;
         private int returncode;
         private final List<String> stdout;
