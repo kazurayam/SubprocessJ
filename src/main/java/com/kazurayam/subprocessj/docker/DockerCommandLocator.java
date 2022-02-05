@@ -2,6 +2,7 @@ package com.kazurayam.subprocessj.docker;
 
 import com.kazurayam.subprocessj.CommandLocator;
 import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
+import com.kazurayam.subprocessj.OSType;
 
 /**
  * Find the full file path of "docker" command in the current OS environment.
@@ -13,7 +14,13 @@ import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
 public class DockerCommandLocator {
 
     public static CommandLocatingResult find() {
-        return CommandLocator.find("docker");
+        if (OSType.isMac() || OSType.isUnix()) {
+            return CommandLocator.find("docker");
+        } else if (OSType.isWindows()) {
+            return CommandLocator.find("docker.exe");
+        } else {
+            throw new IllegalStateException("OSType." + OSType.getOSType() + " is not supported");
+        }
     }
 
     public static CommandLocatingResult where() {

@@ -1,3 +1,3 @@
 # subprocessj
 
-Please see [the doc](https://kazurayam.github.io/subprocessj/)
+-   [the doc](https://kazurayam.github.io/subprocessj/)
