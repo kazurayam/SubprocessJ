@@ -72,6 +72,34 @@ public class CommandLocatorTest {
         }
     }
 
+    /**
+     * If "Docker for Windows" is not installed, CL will return rc=-1.
+     * If it is installed, still CL will return rc=-2 because "where docker" command will return 2 lines as:
+     * <PRE>
+     * C:\\Users\\uraya&gt;where docker
+     * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker
+     * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe
+     * </PRE>
+     */
+    @Test
+    void test_find_docker_on_Windows() {
+        if (OSType.isWindows()) {
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.where("docker");
+            printCFR("test_find_docker_on_Windows", cfr);
+            assertNotEquals(0, cfr.returncode());
+        }
+    }
+
+    @Test
+    void test_find_dockerexe_on_Windows() {
+        if (OSType.isWindows()) {
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.where("docker.exe");
+            printCFR("test_find_dockerexe_on_Windows", cfr);
+            assertEquals(0, cfr.returncode());
+        }
+
+    }
+
     private void printCFR(String label, CommandLocatingResult cfr) {
         System.out.println("-------- " + label + " --------");
         System.out.println(cfr.toString());

@@ -3,10 +3,8 @@ package com.kazurayam.subprocessj;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+
 import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
 
 public class CommandLocator {
@@ -18,29 +16,26 @@ public class CommandLocator {
         }
         CommandLocatingResult clr = new CommandLocatingResult();
         try {
-            if (OSType.isWindows()) {
-                CompletedProcess cp = new Subprocess().run(Arrays.asList("where", command));
-                List<String> normalizedStdout = normalize(cp.stdout());
-                if (normalizedStdout.size() > 0) {
-                    clr.setReturncode(0);
+            CompletedProcess cp;
+            if (OSType.isWindows() || OSType.isMac() || OSType.isUnix()) {
+                if (OSType.isWindows()) {
+                    cp = new Subprocess().run(Arrays.asList("where", command));
                 } else {
-                    clr.setReturncode(-1);
+                    cp = new Subprocess().run(Arrays.asList("which", command));
                 }
-                clr.addAllStdout(cp.stdout());
-                clr.addAllStderr(cp.stderr());
-            } else if (OSType.isMac() || OSType.isUnix()) {
-                CompletedProcess cp = new Subprocess().run(Arrays.asList("which", command));
                 List<String> normalizedStdout = normalize(cp.stdout());
-                if (normalizedStdout.size() > 0) {
+                if (normalizedStdout.size() == 0) {
+                    clr.setReturncode(-1);
+                } else if (normalizedStdout.size() == 1) {
                     clr.setReturncode(0);
                 } else {
-                    clr.setReturncode(-1);
+                    clr.setReturncode(-2);
                 }
                 clr.addAllStdout(cp.stdout());
                 clr.addAllStderr(cp.stderr());
             } else {
                 clr.setReturncode(-701);
-                clr.addAllStderr(Arrays.asList("unsupported OSType=" + OSType.getOSType()));
+                clr.addAllStderr(Collections.singletonList("unsupported OSType=" + OSType.getOSType()));
             }
         } catch (IOException e) {
             clr.setReturncode(-702);
