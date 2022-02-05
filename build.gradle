@@ -12,8 +12,7 @@ repositories {
 
 group = 'com.kazurayam'
 archivesBaseName = "subprocessj"
-version = '0.3.1'
-
+version = '0.3.2'
 ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
 sourceCompatibility = '1.8'
@@ -31,8 +30,6 @@ test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
-
-
 
 javadoc {
     options.encoding = 'UTF-8'

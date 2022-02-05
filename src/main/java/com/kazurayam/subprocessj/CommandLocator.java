@@ -3,14 +3,23 @@ package com.kazurayam.subprocessj;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
 
 public class CommandLocator {
 
     public static CommandLocatingResult find(String command) {
+        return find(command, null);
+    }
+
+    public static CommandLocatingResult find(String command, Predicate<Path> predicate) {
         Objects.requireNonNull(command);
+        // predicate may be null
         if (command.length() == 0) {
             throw new IllegalArgumentException("command must not be 0-length");
         }
@@ -23,16 +32,33 @@ public class CommandLocator {
                 } else {
                     cp = new Subprocess().run(Arrays.asList("which", command));
                 }
-                List<String> normalizedStdout = normalize(cp.stdout());
-                if (normalizedStdout.size() == 0) {
-                    clr.setReturncode(-1);
-                } else if (normalizedStdout.size() == 1) {
-                    clr.setReturncode(0);
-                } else {
-                    clr.setReturncode(-2);
-                }
                 clr.addAllStdout(cp.stdout());
                 clr.addAllStderr(cp.stderr());
+                List<String> lines = normalize(cp.stdout());
+                if (lines.size() == 0) {
+                    clr.setReturncode(-1);
+                } else if (lines.size() == 1) {
+                    clr.setReturncode(0);
+                    clr.setCommand(cp.stdout().get(0).trim());
+                } else {
+                    if (predicate != null) {
+                        List<String> filtered = lines.stream()
+                                .map(Paths::get)
+                                .filter(predicate)
+                                .map(Path::toString)
+                                .collect(Collectors.toList());
+                        if (filtered.size() == 0) {
+                            clr.setReturncode(-1);
+                        } else if (filtered.size() == 1) {
+                            clr.setReturncode(0);
+                            clr.setCommand(filtered.get(0));
+                        } else {
+                            clr.setReturncode(-3);
+                        }
+                    } else {
+                        clr.setReturncode(-2);
+                    }
+                }
             } else {
                 clr.setReturncode(-701);
                 clr.addAllStderr(Collections.singletonList("unsupported OSType=" + OSType.getOSType()));
@@ -47,13 +73,6 @@ public class CommandLocator {
         return clr;
     }
 
-    public static CommandLocatingResult which(String command) {
-        return find(command);
-    }
-
-    public static CommandLocatingResult where(String command) {
-        return find(command);
-    }
 
     /**
      * chomp of empty lines
@@ -69,14 +88,44 @@ public class CommandLocator {
         return result;
     }
 
+    /**
+     *
+     * @param pathFromRoot e.g, Paths.get("C:\\Program Files\\Git\\cmd")
+     * @return a Predicate to filter a List of Paths
+     */
+    public static Predicate<Path> startsWith(String pathFromRoot) {
+        final Path base = Paths.get(pathFromRoot);
+        Predicate<Path> startsWith = path -> {
+            final boolean b = path.startsWith(base);
+            return b;
+        };
+        return startsWith;
+    }
+
+    /**
+     *
+     * @param pathEndingWith e.g, Paths.get("cmd\\git.exe");
+     * @return a Predicate to filter a List of Paths
+     */
+    public static Predicate<Path> endsWith(String pathEndingWith) {
+        final Path tail = Paths.get(pathEndingWith);
+        Predicate<Path> endsWith = path -> {
+            final boolean b = path.endsWith(tail);
+            return b;
+        };
+        return endsWith;
+    }
+
     public static final class CommandLocatingResult {
         private int returncode;
         private final List<String> stdout;
         private final List<String> stderr;
+        private String command;
         public CommandLocatingResult() {
             this.returncode = -1;
             this.stdout = new ArrayList<>();
             this.stderr = new ArrayList<>();
+            this.command = "";
         }
         public void setReturncode(int returncode) {
             this.returncode = returncode;
@@ -87,6 +136,9 @@ public class CommandLocator {
         public void addAllStderr(List<String> stderr) {
             this.stderr.addAll(stderr);
         }
+        public void setCommand(String command) {
+            this.command = command;
+        }
         public int returncode() {
             return returncode;
         }
@@ -95,6 +147,9 @@ public class CommandLocator {
         }
         public List<String> stderr() {
             return stderr;
+        }
+        public String command() {
+            return command;
         }
 
         @Override
@@ -107,6 +162,7 @@ public class CommandLocator {
             } else {
                 pw.println("rc=\"" + this.returncode() + "\">");
             }
+            pw.println("<command>" + this.command() + "</command>");
             pw.print("<stdout>");
             int count = 0;
             for (String s : this.stdout()) {
