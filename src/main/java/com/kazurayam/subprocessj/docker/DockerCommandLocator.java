@@ -9,15 +9,27 @@ import com.kazurayam.subprocessj.OSType;
  * Uses "which" command on Unix-flavord OS; use "where" command on Windows.
  *
  * E.g, on my MacBook, "/usr/local/bin/docker", not "docker"
- * on Windows, it could be something like "C:\\Program File\\docke\\docker.exe"
+ * on Windows, it could be something like "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe"
  */
 public class DockerCommandLocator {
 
     public static CommandLocatingResult find() {
+        CommandLocatingResult clr;
         if (OSType.isMac() || OSType.isUnix()) {
-            return CommandLocator.find("docker");
+            clr = CommandLocator.find("docker");
+            if (clr.returncode() == 0) {
+                return clr;
+            } else {
+                return CommandLocator.find("/usr/local/bin/docker");
+            }
         } else if (OSType.isWindows()) {
-            return CommandLocator.find("docker.exe");
+            clr = CommandLocator.find("docker.exe");
+            if (clr.returncode() == 0) {
+                return clr;
+            } else {
+                return CommandLocator.find(
+                        "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe");
+            }
         } else {
             throw new IllegalStateException("OSType." + OSType.getOSType() + " is not supported");
         }
