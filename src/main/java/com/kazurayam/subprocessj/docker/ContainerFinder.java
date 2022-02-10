@@ -4,6 +4,7 @@ import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
 import com.kazurayam.subprocessj.Subprocess;
 import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
 import com.kazurayam.subprocessj.docker.model.ContainerId;
+import com.kazurayam.subprocessj.docker.model.PublishedPort;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class ContainerFinder {
 
     public ContainerFinder() {}
 
-    public static ContainerFindingResult findContainerByHostPort(int hostPort)
+    public static ContainerFindingResult findContainerByHostPort(PublishedPort publishedPort)
             throws IOException, InterruptedException
     {
         CommandLocatingResult clr = DockerCommandLocator.find();
@@ -40,7 +41,7 @@ public class ContainerFinder {
             String dockerCommand = clr.stdout().get(0).trim();
             List<String> args = Arrays.asList(
                     dockerCommand, "ps",
-                    "--filter", "publish=" + hostPort,
+                    "--filter", "publish=" + publishedPort.hostPort(),
                     "--filter", "status=running",
                     "-q"
             );

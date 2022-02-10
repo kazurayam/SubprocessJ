@@ -1,6 +1,9 @@
 package com.kazurayam.subprocessj.docker.model;
 
 public class PublishedPort {
+
+    public static final PublishedPort NULL_OBJECT = new PublishedPort(0,0);
+
     private final int containerPort;
     private final int hostPort;
     private final Protocol protocol;

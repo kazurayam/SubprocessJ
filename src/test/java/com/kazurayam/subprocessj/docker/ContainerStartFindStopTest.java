@@ -2,6 +2,7 @@ package com.kazurayam.subprocessj.docker;
 
 import com.kazurayam.subprocessj.docker.model.ContainerId;
 import com.kazurayam.subprocessj.docker.model.DockerImage;
+import com.kazurayam.subprocessj.docker.model.NameValuePair;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,15 +29,21 @@ public class ContainerStartFindStopTest {
     public static void beforeAll() throws IOException, InterruptedException {
         File directory = Files.createTempDirectory("ContainerFinderTest").toFile();
         ContainerRunningResult crr =
-                ContainerRunner.runContainerAtHostPort(directory, publishedPort, image);
+                new ContainerRunner.Builder(image)
+                        .directory(directory)
+                        .envVar(new NameValuePair("FLASKR_ALT_VIEW","true"))
+                        .publishedPort(publishedPort)
+                        .build().run();
         if (crr.returncode() != 0) {
             throw new IllegalStateException(crr.toString());
+        } else {
+            System.out.println("Starting the container.\n" + crr.toString());
         }
     }
 
     @AfterAll
     public static void afterAll() throws IOException, InterruptedException {
-        ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT);
+        ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(publishedPort);
         if (cfr.returncode() == 0) {
             ContainerId containerId = cfr.containerId();
             ContainerStoppingResult csr = ContainerStopper.stopContainer(containerId);
@@ -50,14 +57,15 @@ public class ContainerStartFindStopTest {
 
     @Test
     public void test_findByHostPort_found() throws IOException, InterruptedException {
-        ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT);
+        ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(publishedPort);
         printResult("test_findingByHostPort_found", cfr);
         assertEquals(0, cfr.returncode());
     }
 
     @Test
     public void test_findByHostPort_notFound() throws IOException, InterruptedException {
-        ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(HOST_PORT + 1);
+        PublishedPort altPublishedPort = new PublishedPort(HOST_PORT + 1, 8080);
+        ContainerFindingResult cfr = ContainerFinder.findContainerByHostPort(altPublishedPort);
         printResult("test_findingByHostPort_notFound", cfr);
         assertNotEquals(0, cfr.returncode());
     }
