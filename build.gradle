@@ -12,7 +12,8 @@ repositories {
 
 group = 'com.kazurayam'
 archivesBaseName = "subprocessj"
-version = '0.3.2'
+version = '0.3.3'
+
 ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
 sourceCompatibility = '1.8'
