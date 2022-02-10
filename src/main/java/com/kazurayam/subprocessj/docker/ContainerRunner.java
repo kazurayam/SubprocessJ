@@ -95,7 +95,7 @@ public class ContainerRunner {
             this.publishedPort = PublishedPort.NULL_OBJECT;
             this.envVars = new ArrayList<NameValuePair>();
         }
-        Builder directory(File directory) throws IOException {
+        public Builder directory(File directory) throws IOException {
             Objects.requireNonNull(directory);
             if (! directory.exists()) {
                 throw new IOException(directory + " does not exist");
@@ -103,22 +103,22 @@ public class ContainerRunner {
             this.directory = directory;
             return this;
         }
-        Builder publishedPort(PublishedPort publishedPort) {
+        public Builder publishedPort(PublishedPort publishedPort) {
             Objects.requireNonNull(publishedPort);
             this.publishedPort = publishedPort;
             return this;
         }
-        Builder envVar(NameValuePair nameValuePair) {
+        public Builder envVar(NameValuePair nameValuePair) {
             Objects.requireNonNull(nameValuePair);
             this.envVars.add(nameValuePair);
             return this;
         }
-        Builder addEnvVars(List<NameValuePair> nameValuePairs) {
+        public Builder addEnvVars(List<NameValuePair> nameValuePairs) {
             Objects.requireNonNull(nameValuePairs);
             this.envVars.addAll(nameValuePairs);
             return this;
         }
-        ContainerRunner build() {
+        public ContainerRunner build() {
             return new ContainerRunner(this);
         }
     }
