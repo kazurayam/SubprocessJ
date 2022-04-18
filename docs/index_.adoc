@@ -111,6 +111,23 @@ include::../src/test/java/com/kazurayam/subprocessj/ProcessFinderTest_base.java[
 include::../src/test/java/com/kazurayam/subprocessj/OSTypeTest.java[]
 ----
 
+=== retrieving Password from Mac KeyChain
+
+I often write Selenium test that access to some Web apps with authentication.
+I need to put username/password pair. Due to obvious security reason,
+I do not like to wrote password string in the source code at all.
+I would like to use the link:https://support.apple.com/guide/keychain-access/kyca1083/mac[KeyChain] of macos
+to store passwords, and I want my Selenium test to retrieve the password from KeyChain.
+KeyChain provides a commandline interface named `security` which is built-in macos.
+So I want my Selenium test to execute the `security` command and
+retrieve the password value I need.
+
+The following sample shows how to.
+
+[src,java]
+----
+include::../src/test/java/example/KeyChainExample.java[]
+----
 
 
 == links

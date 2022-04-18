@@ -1,23 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
-
-- [subprocessj](#subprocessj)
-  - [What is this?](#what-is-this)
-  - [Motivation](#motivation)
-  - [API](#api)
-  - [Example of using Subprocess classes](#example-of-using-subprocess-classes)
-    - [Starting a process](#starting-a-process)
-    - [Stopping a process](#stopping-a-process)
-    - [Finding the path of an OS command](#finding-the-path-of-an-os-command)
-    - [Finding process id](#finding-process-id)
-      - [Finding the pid of the current JVM](#finding-the-pid-of-the-current-jvm)
-      - [Finding the pid of a process which is listening to a specific IP port](#finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port)
-    - [Identifying OS Type](#identifying-os-type)
-  - [links](#links)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 # subprocessj
 
 ## What is this?
@@ -233,6 +213,34 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     public class CommandLocatorTest {
 
         /**
+         * If "Docker for Windows" is not installed, CL will return rc=-1.
+         * If it is installed, still CL will return rc=-2 because "where docker" command will return 2 lines as:
+         * <PRE>
+         * C:\\Users\\uraya&gt;where docker
+         * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker
+         * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe
+         * </PRE>
+         */
+        @Test
+        void test_find_docker_on_Windows() {
+            if (OSType.isWindows()) {
+                CommandLocator.CommandLocatingResult cfr = CommandLocator.find("docker");
+                printCFR("test_find_docker_on_Windows", cfr);
+                assertNotEquals(0, cfr.returncode());
+            }
+        }
+
+        @Test
+        void test_find_dockerexe_on_Windows() {
+            if (OSType.isWindows()) {
+                CommandLocator.CommandLocatingResult cfr = CommandLocator.find("docker.exe");
+                printCFR("test_find_dockerexe_on_Windows", cfr);
+                assertEquals(0, cfr.returncode());
+            }
+
+        }
+
+        /**
          * The returned value depends on the runtime environment.
          *
          * On Mac, this will return
@@ -251,31 +259,39 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
          * If "git" is not, it will return rc=-1.
          */
         @Test
-        void test_find_git_is_found() {
-            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
-            printCFR("test_find_git_is_found", cfr);
-            assertTrue(cfr.returncode() == 0 || cfr.returncode() == -2);
+        void test_find_git_is_found_startswith_predicate() {
+            CommandLocatingResult cfr;
+            if (OSType.isWindows()) {
+                cfr = CommandLocator.find(
+                        "git",
+                        CommandLocator.startsWith("C:\\Program Files\\Git\\cmd")
+                );
+            } else if (OSType.isMac() || OSType.isUnix()) {
+                cfr = CommandLocator.find("git");
+            } else {
+                throw new IllegalStateException(OSType.getOSType() + " is not supported");
+            }
+            printCFR("test_find_git_is_found_startswith_predicate", cfr);
+            assertEquals(0, cfr.returncode());
         }
 
-        /**
-         * just an alias to find(String command)
-         */
         @Test
-        void test_which_git() {
-            CommandLocatingResult cfr = CommandLocator.which("git");
-            printCFR("test_which_git", cfr);
-            assertTrue(cfr.returncode() == 0 || cfr.returncode() == -2);
+        void test_find_git_is_found_endswith_predicate() {
+            CommandLocatingResult cfr;
+            if (OSType.isWindows()) {
+                cfr = CommandLocator.find(
+                        "git",
+                        CommandLocator.endsWith("cmd\\git.exe")
+                );
+            } else if (OSType.isMac() || OSType.isUnix()) {
+                cfr = CommandLocator.find("git");
+            } else {
+                throw new IllegalStateException(OSType.getOSType() + " is not supported");
+            }
+            printCFR("test_find_git_is_found_endswith_predicate", cfr);
+            assertEquals(0, cfr.returncode());
         }
 
-        /**
-         * one more alias to find(String command)
-         */
-        @Test
-        void test_where_git() {
-            CommandLocatingResult cfr = CommandLocator.where("git");
-            printCFR("test_where_git", cfr);
-            assertTrue(cfr.returncode() == 0 || cfr.returncode() == -2);
-        }
 
         /**
          * The "tiger" command is expected NOT to be there
@@ -298,39 +314,12 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
         @Test
         void test_find_date_on_Windows() {
             if (OSType.isWindows()) {
-                CommandLocator.CommandLocatingResult cfr = CommandLocator.where("date");
+                CommandLocator.CommandLocatingResult cfr = CommandLocator.find("date");
                 printCFR("test_find_date_on_Windows", cfr);
                 assertEquals(0, cfr.returncode());
             }
         }
 
-        /**
-         * If "Docker for Windows" is not installed, CL will return rc=-1.
-         * If it is installed, still CL will return rc=-2 because "where docker" command will return 2 lines as:
-         * <PRE>
-         * C:\\Users\\uraya&gt;where docker
-         * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker
-         * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe
-         * </PRE>
-         */
-        @Test
-        void test_find_docker_on_Windows() {
-            if (OSType.isWindows()) {
-                CommandLocator.CommandLocatingResult cfr = CommandLocator.where("docker");
-                printCFR("test_find_docker_on_Windows", cfr);
-                assertNotEquals(0, cfr.returncode());
-            }
-        }
-
-        @Test
-        void test_find_dockerexe_on_Windows() {
-            if (OSType.isWindows()) {
-                CommandLocator.CommandLocatingResult cfr = CommandLocator.where("docker.exe");
-                printCFR("test_find_dockerexe_on_Windows", cfr);
-                assertEquals(0, cfr.returncode());
-            }
-
-        }
 
         private void printCFR(String label, CommandLocatingResult cfr) {
             System.out.println("-------- " + label + " --------");
@@ -425,6 +414,47 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
         @Test
         void test_getOSType() {
             assertTrue(OSType.isMac() || OSType.isUnix() || OSType.isWindows());
+        }
+    }
+
+### retrieving Password from Mac KeyChain
+
+I often write Selenium test that access to some Web apps with authentication.
+I need to put username/password pair. Due to obvious security reason,
+I do not like to wrote password string in the source code at all.
+I would like to use the [KeyChain](https://support.apple.com/guide/keychain-access/kyca1083/mac) of macos
+to store passwords, and I want my Selenium test to retrieve the password from KeyChain.
+KeyChain provides a commandline interface named `security` which is built-in macos.
+So I want my Selenium test to execute the `security` command and
+retrieve the password value I need.
+
+The following sample shows how to.
+
+    package example;
+
+    import com.kazurayam.subprocessj.Subprocess;
+    import org.junit.jupiter.api.Test;
+
+    import java.io.File;
+    import java.io.IOException;
+    import java.util.Arrays;
+
+    import static org.junit.jupiter.api.Assertions.assertEquals;
+
+    public class KeyChainExample {
+
+        @Test
+        public void test_macos_security_findinternetpassword()
+                throws IOException, InterruptedException
+        {
+            Subprocess.CompletedProcess cp;
+            cp = new Subprocess().cwd(new File("."))
+                    .run(Arrays.asList("security", "find-internet-password",
+                            "-s", "katalon-demo-cura.herokuapp.com",
+                            "-a", "John Doe",
+                            "-w"));
+            assertEquals("ThisIsNotAPassword", cp.stdout().get(0));
+            System.out.println("password is '" + cp.stdout().get(0) + "'") ;
         }
     }
 
