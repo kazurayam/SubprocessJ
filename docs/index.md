@@ -421,10 +421,11 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
 I often write Selenium test that access to some Web apps with authentication.
 I need to put username/password pair. Due to obvious security reason,
-I do not like to wrote password string in the source code at all.
-I would like to use the [KeyChain](https://support.apple.com/guide/keychain-access/kyca1083/mac) of macos
+I do not like to write password strings in the source code at all.
+I would rather like to use the [KeyChain](https://support.apple.com/guide/keychain-access/kyca1083/mac) of macos
 to store passwords, and I want my Selenium test to retrieve the password from KeyChain.
-KeyChain provides a commandline interface named `security` which is built-in macos.
+
+KeyChain provides a commandline interface named `security` which is built-in the macos.
 So I want my Selenium test to execute the `security` command and
 retrieve the password value I need.
 
