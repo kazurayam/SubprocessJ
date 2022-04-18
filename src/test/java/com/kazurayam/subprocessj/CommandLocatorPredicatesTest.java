@@ -1,6 +1,7 @@
 package com.kazurayam.subprocessj;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 public class CommandLocatorPredicatesTest {
 
     static String mingw64 = "C:\\Program Files\\Git\\mingw64\\bin\\git.exe";

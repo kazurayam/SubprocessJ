@@ -156,12 +156,8 @@ public class CommandLocator {
         public String toString() {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
-            pw.print("<command-finding-result ");
-            if (this.returncode() == 0) {
-                pw.println("rc=\"" + this.returncode() + "\">");
-            } else {
-                pw.println("rc=\"" + this.returncode() + "\">");
-            }
+            pw.print("<command-locating-result ");
+            pw.println("rc=\"" + this.returncode() + "\">");
             pw.println("<command>" + this.command() + "</command>");
             pw.print("<stdout>");
             int count = 0;
@@ -178,7 +174,7 @@ public class CommandLocator {
                 count += 1;
             }
             pw.println("</stderr>");
-            pw.println("<command-finding-result>");
+            pw.println("</command-locating-result>");
             pw.flush();
             pw.close();
             return sw.toString();
