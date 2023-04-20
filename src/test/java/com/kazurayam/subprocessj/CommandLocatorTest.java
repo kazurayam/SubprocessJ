@@ -9,10 +9,37 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommandLocatorTest {
 
     /**
+     * On Mac, the `git` command will be found at `/usr/local/bin/git`
+     */
+    @Test
+    void test_git_on_Mac() {
+        if (OSType.isMac()) {
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
+            assertEquals("/usr/local/bin/git", cfr.command());
+            assertEquals(0, cfr.returncode());
+        }
+    }
+
+    /**
+     * `notepad` command should not be there on Mac
+     */
+    @Test
+    void test_pngquant() {
+        if (OSType.isMac() || OSType.isUnix()) {
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("pngquant");
+            assertEquals("/usr/local/bin/pngquant", cfr.command());
+            assertEquals(0, cfr.returncode());
+        } else if (OSType.isWindows()) {
+            throw new RuntimeException("TODO");
+        }
+    }
+
+    /**
      * If "Docker for Windows" is not installed, CL will return rc=-1.
      * If it is installed, still CL will return rc=-2 because "where docker" command will return 2 lines as:
      * <PRE>
      * C:\\Users\\uraya&gt;where docker
+     *
      * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker
      * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe
      * </PRE>
