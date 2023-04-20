@@ -30,7 +30,12 @@ public class CommandLocatorTest {
             assertEquals("/usr/local/bin/pngquant", cfr.command());
             assertEquals(0, cfr.returncode());
         } else if (OSType.isWindows()) {
-            throw new RuntimeException("TODO");
+            CommandLocator.CommandLocatingResult cfr =
+                    CommandLocator.find("pngquant.exe",
+                            CommandLocator.startsWith("C:\\Program Files\\pngquant")
+                    );
+            assertEquals("C:\\Program Files\\pngquant\\pngquant.exe", cfr.command());
+            assertEquals(0, cfr.returncode());
         }
     }
 
@@ -69,17 +74,19 @@ public class CommandLocatorTest {
      * On Mac, this will return
      * <PRE>/usr/local/bin/git</PRE>
      *
-     * On Windows, may be
-     * <PRE>C:\Program Files\Git\cmd\git.exe</PRE>
-     * if the "Git for Windows" is installed.
      *
-     * However, if you execute this test in the "Git Bash" shell, there could be 2 git.exe
+     * On Windows,
+     * "where git"
+     * will return 2 lines:
      * <PRE>
      * C:\Program Files\Git\mingw64\bin\git.exe
      * C:\Program Files\Git\cmd\git.exe
      * </PRE>
+     * In this case, CommandLocator can not determine which path to choose.
+     * Therefore CommandLocator will returncode -3 and command will be null.
      *
-     * If "git" is not, it will return rc=-1.
+     * If you want to chose the line of "C:\Program Files\Git\cmd", you can specify
+     * the second parameter to the find(String, Predicate&lt;Path&gt;)
      */
     @Test
     void test_find_git_is_found_startswith_predicate() {
@@ -96,6 +103,7 @@ public class CommandLocatorTest {
         }
         printCFR("test_find_git_is_found_startswith_predicate", cfr);
         assertEquals(0, cfr.returncode());
+        assertEquals("C:\\Program Files\\Git\\cmd\\git.exe", cfr.command());
     }
 
     @Test
