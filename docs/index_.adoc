@@ -130,6 +130,32 @@ The following sample shows how to.
 include::../src/test/java/example/KeyChainExample.java[]
 ----
 
+== A sample code to run a utility "pngquant" from Java
+
+The following JUnit5 test shows a sample how to invoke link:https://pngquant.org/[pngquant] to compress a PNG image file.
+
+[source, java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/PngquantTest.java[]
+----
+
+The output from this test is as follows:
+[source]
+----
+[test_compress_png_using_pngquant]
+<completed-process rc="0">
+<command>pngquant --ext .png --force --speed 1 ./build/tmp/testOutput/PngquantTest/apple.png</command>
+<stdout>
+</stdout>
+<stderr>
+</stdout>
+</completed-process>
+
+file: ./build/tmp/testOutput/PngquantTest/apple.png
+size before compression: 3655
+size after compression: 2818
+size delta: Δ22%
+----
 
 == links
 

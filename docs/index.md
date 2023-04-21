@@ -1,23 +1,18 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
-
-- [subprocessj](#subprocessj)
-  - [What is this?](#what-is-this)
-  - [Motivation](#motivation)
-  - [API](#api)
-  - [Example of using Subprocess classes](#example-of-using-subprocess-classes)
-    - [Starting a process](#starting-a-process)
-    - [Stopping a process](#stopping-a-process)
-    - [Finding the path of an OS command](#finding-the-path-of-an-os-command)
-    - [Finding process id](#finding-process-id)
-      - [Finding the pid of the current JVM](#finding-the-pid-of-the-current-jvm)
-      - [Finding the pid of a process which is listening to a specific IP port](#finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port)
-    - [Identifying OS Type](#identifying-os-type)
-    - [retrieving Password from Mac KeyChain](#retrieving-password-from-mac-keychain)
-  - [links](#links)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+-   <a href="#subprocessj" id="toc-subprocessj">subprocessj</a>
+    -   <a href="#what-is-this" id="toc-what-is-this">What is this?</a>
+    -   <a href="#motivation" id="toc-motivation">Motivation</a>
+    -   <a href="#api" id="toc-api">API</a>
+    -   <a href="#example-of-using-subprocess-classes" id="toc-example-of-using-subprocess-classes">Example of using Subprocess classes</a>
+        -   <a href="#starting-a-process" id="toc-starting-a-process">Starting a process</a>
+        -   <a href="#stopping-a-process" id="toc-stopping-a-process">Stopping a process</a>
+        -   <a href="#finding-the-path-of-an-os-command" id="toc-finding-the-path-of-an-os-command">Finding the path of an OS command</a>
+        -   <a href="#finding-process-id" id="toc-finding-process-id">Finding process id</a>
+            -   <a href="#finding-the-pid-of-the-current-jvm" id="toc-finding-the-pid-of-the-current-jvm">Finding the pid of the current JVM</a>
+            -   <a href="#finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port" id="toc-finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port">Finding the pid of a process which is listening to a specific IP port</a>
+        -   <a href="#identifying-os-type" id="toc-identifying-os-type">Identifying OS Type</a>
+        -   <a href="#retrieving-password-from-mac-keychain" id="toc-retrieving-password-from-mac-keychain">retrieving Password from Mac KeyChain</a>
+    -   <a href="#a-sample-code-to-run-a-utility-pngquant-from-java" id="toc-a-sample-code-to-run-a-utility-pngquant-from-java">A sample code to run a utility "pngquant" from Java</a>
+    -   <a href="#links" id="toc-links">links</a>
 
 # subprocessj
 
@@ -234,10 +229,90 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     public class CommandLocatorTest {
 
         /**
+         * assert that the "tiger" command is not there
+         */
+        @Test
+        void test_find_tiger_not_exists() {
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
+            printCFR("test_find_tiger_not_exists", cfr);
+            assertNotEquals(0, cfr.returncode());
+        }
+
+        /**
+         * On Mac, the `git` command will be found at `/usr/local/bin/git`
+         */
+        @Test
+        void test_git_on_Mac() {
+            if (OSType.isMac()) {
+                CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
+                assertEquals("/usr/local/bin/git", cfr.command());
+                assertEquals(0, cfr.returncode());
+            }
+        }
+
+        /**
+         * The returned value depends on the runtime environment.
+         *
+         * On Mac, this will return
+         * <PRE>/usr/local/bin/git</PRE>
+         *
+         * On Windows,
+         * "where git"
+         * will return 2 lines:
+         * <PRE>
+         * C:\Program Files\Git\mingw64\bin\git.exe
+         * C:\Program Files\Git\cmd\git.exe
+         * </PRE>
+         * In this case, CommandLocator can not determine which path to choose.
+         * Therefore CommandLocator will returncode -3 and command will be null.
+         *
+         * If you want to chose the line of "C:\Program Files\Git\cmd", you can specify
+         * the second parameter to the find(String, Predicate&lt;Path&gt;)
+         */
+        @Test
+        void test_find_git_with_startswith_predicate() {
+            CommandLocatingResult cfr;
+            if (OSType.isWindows()) {
+                cfr = CommandLocator.find(
+                        "git",
+                        CommandLocator.startsWith("C:\\Program Files\\Git\\cmd")
+                );
+                printCFR("test_find_git_is_found_startswith_predicate", cfr);
+                assertEquals(0, cfr.returncode());
+                assertEquals("C:\\Program Files\\Git\\cmd\\git.exe", cfr.command());
+            } else if (OSType.isMac() || OSType.isUnix()) {
+                cfr = CommandLocator.find("git");
+                printCFR("test_find_git_is_found_startswith_predicate", cfr);
+                assertEquals(0, cfr.returncode());
+                assertEquals("/usr/local/bin/git", cfr.command());
+            } else {
+                throw new IllegalStateException(OSType.getOSType() + " is not supported");
+            }
+        }
+
+        @Test
+        void test_find_git_with_endswith_predicate() {
+            CommandLocatingResult cfr;
+            if (OSType.isWindows()) {
+                cfr = CommandLocator.find(
+                        "git",
+                        CommandLocator.endsWith("cmd\\git.exe")
+                );
+            } else if (OSType.isMac() || OSType.isUnix()) {
+                cfr = CommandLocator.find("git");
+            } else {
+                throw new IllegalStateException(OSType.getOSType() + " is not supported");
+            }
+            printCFR("test_find_git_is_found_endswith_predicate", cfr);
+            assertEquals(0, cfr.returncode());
+        }
+
+        /**
          * If "Docker for Windows" is not installed, CL will return rc=-1.
          * If it is installed, still CL will return rc=-2 because "where docker" command will return 2 lines as:
          * <PRE>
          * C:\\Users\\uraya&gt;where docker
+         *
          * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker
          * C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe
          * </PRE>
@@ -258,71 +333,8 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
                 printCFR("test_find_dockerexe_on_Windows", cfr);
                 assertEquals(0, cfr.returncode());
             }
-
         }
 
-        /**
-         * The returned value depends on the runtime environment.
-         *
-         * On Mac, this will return
-         * <PRE>/usr/local/bin/git</PRE>
-         *
-         * On Windows, may be
-         * <PRE>C:\Program Files\Git\cmd\git.exe</PRE>
-         * if the "Git for Windows" is installed.
-         *
-         * However, if you execute this test in the "Git Bash" shell, there could be 2 git.exe
-         * <PRE>
-         * C:\Program Files\Git\mingw64\bin\git.exe
-         * C:\Program Files\Git\cmd\git.exe
-         * </PRE>
-         *
-         * If "git" is not, it will return rc=-1.
-         */
-        @Test
-        void test_find_git_is_found_startswith_predicate() {
-            CommandLocatingResult cfr;
-            if (OSType.isWindows()) {
-                cfr = CommandLocator.find(
-                        "git",
-                        CommandLocator.startsWith("C:\\Program Files\\Git\\cmd")
-                );
-            } else if (OSType.isMac() || OSType.isUnix()) {
-                cfr = CommandLocator.find("git");
-            } else {
-                throw new IllegalStateException(OSType.getOSType() + " is not supported");
-            }
-            printCFR("test_find_git_is_found_startswith_predicate", cfr);
-            assertEquals(0, cfr.returncode());
-        }
-
-        @Test
-        void test_find_git_is_found_endswith_predicate() {
-            CommandLocatingResult cfr;
-            if (OSType.isWindows()) {
-                cfr = CommandLocator.find(
-                        "git",
-                        CommandLocator.endsWith("cmd\\git.exe")
-                );
-            } else if (OSType.isMac() || OSType.isUnix()) {
-                cfr = CommandLocator.find("git");
-            } else {
-                throw new IllegalStateException(OSType.getOSType() + " is not supported");
-            }
-            printCFR("test_find_git_is_found_endswith_predicate", cfr);
-            assertEquals(0, cfr.returncode());
-        }
-
-
-        /**
-         * The "tiger" command is expected NOT to be there
-         */
-        @Test
-        void test_find_tiger_not_exists() {
-            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
-            printCFR("test_find_tiger_not_exists", cfr);
-            assertNotEquals(0, cfr.returncode());
-        }
 
         /**
          * On Windows, the "date" command is implemented as a sub-command of cmd.exe.
@@ -337,7 +349,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             if (OSType.isWindows()) {
                 CommandLocator.CommandLocatingResult cfr = CommandLocator.find("date");
                 printCFR("test_find_date_on_Windows", cfr);
-                assertEquals(0, cfr.returncode());
+                assertNotEquals(0, cfr.returncode());
             }
         }
 
@@ -479,6 +491,100 @@ The following sample shows how to.
             System.out.println("password is '" + cp.stdout().get(0) + "'") ;
         }
     }
+
+## A sample code to run a utility "pngquant" from Java
+
+The following JUnit5 test shows a sample how to invoke [pngquant](https://pngquant.org/) to compress a PNG image file.
+
+    package com.kazurayam.subprocessj;
+
+    import org.junit.jupiter.api.BeforeEach;
+
+    import java.nio.file.Files;
+    import java.nio.file.Path;
+    import java.nio.file.Paths;
+    import org.junit.jupiter.api.Test;
+    import org.junit.jupiter.api.BeforeEach;
+    import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
+
+    import static org.junit.jupiter.api.Assertions.*;
+    import java.io.IOException;
+    import java.nio.file.StandardCopyOption;
+    import java.util.Arrays;
+
+    /**
+     * [pngquant](https://pngquant.org/) is a command-line utility for lossy compression of PNG images.
+     * It is available on Mac, Windows and Linux.
+     */
+    public class PngquantTest {
+
+        private Path fixturesDir = Paths.get(".").resolve("src/test/fixtures");
+        private Path outputDir = Paths.get(".").resolve("build/tmp/testOutput/PngquantTest");
+
+        @BeforeEach
+        public void beforeEach() throws IOException {
+            Files.createDirectories(outputDir);
+        }
+
+        /**
+         * Here I assume that "pngquant" is already installed in the runtime environment and
+         * the command "$ pngquant --version" responds
+         * "2.18.0 (January 2023)"
+         *
+         * This code shows how to execute the pngquant from Java to compress
+         * a sample PNG image using pngquant.
+         */
+        @Test
+        public void test_compress_png_using_pngquant() throws IOException {
+            // 1. make sure the source PNG image is present
+            Path sourcePng = fixturesDir.resolve("apple.png");
+            assertTrue(Files.exists(sourcePng));
+            // 2. copy the source to the target file
+            Path targetPng = outputDir.resolve("apple.png");
+             Files.copy(sourcePng, targetPng, StandardCopyOption.REPLACE_EXISTING);
+            // 3. record the size information of the target file
+            long sizeBeforeCompression = targetPng.toFile().length();
+            // 4. now compress it using pngquant
+            Subprocess.CompletedProcess cp;
+            try {
+                cp = new Subprocess().run(Arrays.asList(
+                    "pngquant", "--ext", ".png", "--force",
+                    "--speed", "1", targetPng.toString()
+                ));
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            // 5. assert that pngquant ran successfully
+            System.out.println("[test_compress_png_using_pngquant]");
+            System.out.println(cp.toString());
+            assertEquals(0, cp.returncode());
+            // 6. record the size information of the compressed file
+            long sizeAfterCompression = targetPng.toFile().length();
+            // 7. report the result
+            System.out.println(String.format("file: %s", targetPng.toString()));
+            System.out.println(String.format("size before compression: %d", sizeBeforeCompression));
+            System.out.println(String.format("size after compression: %d", sizeAfterCompression));
+            long delta = ((sizeBeforeCompression - sizeAfterCompression) * 100) / sizeBeforeCompression;
+            System.out.println(String.format("size delta: Δ%d%%", delta));
+        }
+
+    }
+
+The output from this test is as follows:
+
+    [test_compress_png_using_pngquant]
+    <completed-process rc="0">
+    <command>pngquant --ext .png --force --speed 1 ./build/tmp/testOutput/PngquantTest/apple.png</command>
+    <stdout>
+    </stdout>
+    <stderr>
+    </stdout>
+    </completed-process>
+
+    file: ./build/tmp/testOutput/PngquantTest/apple.png
+    size before compression: 3655
+    size after compression: 2818
+    size delta: Δ22%
 
 ## links
 
