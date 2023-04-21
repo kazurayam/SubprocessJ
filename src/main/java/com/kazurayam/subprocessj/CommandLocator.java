@@ -13,10 +13,21 @@ import com.kazurayam.subprocessj.Subprocess.CompletedProcess;
 
 public class CommandLocator {
 
+    /**
+     *
+     * @param command a command name. e.g, "git"
+     * @return the CommandLocatingResult object.
+     *    the CommandLocatingResult.command() will return a string which is
+     *    the full path of the executable of the command.
+     *    e.g, "/usr/local/bin/git"
+     */
     public static CommandLocatingResult find(String command) {
         return find(command, null);
     }
 
+    /**
+     * see the documentation for detail.
+     */
     public static CommandLocatingResult find(String command, Predicate<Path> predicate) {
         Objects.requireNonNull(command);
         // predicate may be null
