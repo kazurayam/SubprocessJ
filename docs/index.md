@@ -539,28 +539,38 @@ The following JUnit5 test shows a sample how to invoke [pngquant](https://pngqua
             // 1. make sure the source PNG image is present
             Path sourcePng = fixturesDir.resolve("apple.png");
             assertTrue(Files.exists(sourcePng));
+
             // 2. copy the source to the target file
             Path targetPng = outputDir.resolve("apple.png");
-             Files.copy(sourcePng, targetPng, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(sourcePng, targetPng, StandardCopyOption.REPLACE_EXISTING);
+
             // 3. record the size information of the target file
             long sizeBeforeCompression = targetPng.toFile().length();
-            // 4. now compress it using pngquant
-            Subprocess.CompletedProcess cp;
-            try {
-                cp = new Subprocess().run(Arrays.asList(
-                    "pngquant", "--ext", ".png", "--force",
-                    "--speed", "1", targetPng.toString()
-                ));
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
+
+            // 4. check if "pngquant" is installed and available
+            CommandLocator.CommandLocatingResult clr = CommandLocator.find("pngquant");
+            if (clr.returncode() == 0) {
+                // 5. now compress it using pngquant
+                Subprocess.CompletedProcess cp;
+                try {
+                    cp = new Subprocess().run(Arrays.asList(
+                            "pngquant", "--ext", ".png", "--force",
+                            "--speed", "1", targetPng.toString()
+                    ));
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                // 6. assert that pngquant ran successfully
+                System.out.println("[test_compress_png_using_pngquant]");
+                System.out.println(cp.toString());
+                assertEquals(0, cp.returncode());
             }
-            // 5. assert that pngquant ran successfully
-            System.out.println("[test_compress_png_using_pngquant]");
-            System.out.println(cp.toString());
-            assertEquals(0, cp.returncode());
-            // 6. record the size information of the compressed file
+
+            // 7. record the size information of the compressed file
             long sizeAfterCompression = targetPng.toFile().length();
-            // 7. report the result
+
+            // 8. report the result
             System.out.println(String.format("file: %s", targetPng.toString()));
             System.out.println(String.format("size before compression: %d", sizeBeforeCompression));
             System.out.println(String.format("size after compression: %d", sizeAfterCompression));
