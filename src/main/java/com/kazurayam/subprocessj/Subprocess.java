@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -79,7 +80,19 @@ public class Subprocess {
 
     private File cwd = new File(".");
 
-    public Subprocess() {}
+    private ProcessBuilder processBuilder;
+
+    public Subprocess() {
+        processBuilder = new ProcessBuilder();
+    }
+
+    public Map<String, String> environment() {
+        return processBuilder.environment();
+    }
+
+    public String environment(String key) {
+        return this.environment().get(key);
+    }
 
     /**
      * Change the current working directory.
@@ -128,10 +141,9 @@ public class Subprocess {
                 );
             }
         }
-        ProcessBuilder builder = new ProcessBuilder();
-        builder.directory(this.cwd);
-        builder.command(command);
-        Process process = builder.start();
+        processBuilder.directory(this.cwd);
+        processBuilder.command(command);
+        Process process = processBuilder.start();
         CompletedProcess cp = new CompletedProcess(command);
 
         // https://www.baeldung.com/java-executor-wait-for-threads

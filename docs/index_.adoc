@@ -157,6 +157,19 @@ size after compression: 2818
 size delta: Δ22%
 ----
 
+== How to get Environment Variable values
+
+[source, java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/EchoPathTest.java[]
+----
+
+When execute, I got the following output
+[source, java]
+----
+PATH: /bin:/sbin:/usr/bin:/usr/local/bin:/usr/local/bin:/usr/local/go/bin:/usr/local/sbin:/usr/sbin:/Users/kazuakiurayama/.nodebrew/current/bin: ... and a lot more
+----
+
 == links
 
 The artifact is available at the Maven Central repository:

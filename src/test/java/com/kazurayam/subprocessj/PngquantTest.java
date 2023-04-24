@@ -51,6 +51,8 @@ public class PngquantTest {
 
         // 4. check if "pngquant" is installed and available
         CommandLocator.CommandLocatingResult clr = CommandLocator.find("pngquant");
+        System.out.println(clr.toString());
+
         if (clr.returncode() == 0) {
             // 5. now compress it using pngquant
             Subprocess.CompletedProcess cp;
