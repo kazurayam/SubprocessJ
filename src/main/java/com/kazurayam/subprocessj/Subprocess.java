@@ -240,6 +240,7 @@ public class Subprocess {
             return this.stderr;
         }
 
+
         @Override
         public String toString() {
             StringWriter sw = new StringWriter();
@@ -288,6 +289,31 @@ public class Subprocess {
             pw.flush();
             pw.close();
             return sw.toString();
+        }
+
+        public static String quote(String str) {
+            char[] chs = str.toCharArray();
+            StringBuilder sb = new StringBuilder();
+            boolean containsSpecialChar = false;
+            for (char c : chs) {
+                if (c ==' ' || c == ';' || c == '&' || c == '(' || c == ')' || c == '|' ||
+                        c == '^' || c == '<' || c == '>' || c == '?' || c == '*' ||
+                        c == '[' || c == ']' || c == '$' || c == '"' || c == '`' ||
+                        c == '{' || c == '}' || c == '\n' || c == '\r' || c == '\t' ) {
+                    containsSpecialChar = true;
+                    sb.append(c);
+                } else if (c =='\'') {
+                    containsSpecialChar = true;
+                    sb.append('\\');
+                    sb.append(c);
+                } else {
+                    sb.append(c);
+                }
+            }
+            if (containsSpecialChar) {
+                return String.format("'%s'", sb);
+            } else
+                return sb.toString();
         }
     }
 
