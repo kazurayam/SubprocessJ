@@ -283,7 +283,7 @@ public class Subprocess {
                     pw.println(line.trim());
                 }
             }
-            pw.println("</stdout>");
+            pw.println("</stderr>");
             //
             pw.println("</completed-process>");
             pw.flush();
