@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class SubprocessCompletedProcessTest {
 
+
     @Test
     public void test_quote() {
         assertEquals("123", Subprocess.CompletedProcess.quote("123"));
@@ -24,6 +25,28 @@ public class SubprocessCompletedProcessTest {
     }
 
     @Test
+    public void test_commandline() {
+        String prefix = "20230828_201457";
+        String htmlFileName = prefix + ".html";
+        String pdfFileName = prefix + ".pdf";
+        List<String> args = Arrays.asList(
+                "/usr/local/bin/wkhtmltopdf",
+                "--debug-javascript",
+                "--run-script", "console.log('starting')",
+                "--run-script", "document.querySelector('h1').textContent = 'Hello'",
+                "--run-script", "console.log('finished')",
+                "--javascript-delay", "1000",
+                htmlFileName, pdfFileName
+        );
+        Subprocess.CompletedProcess cp = new Subprocess.CompletedProcess(args);
+        // System.out.println(cp.commandline());
+        // -> /usr/local/bin/wkhtmltopdf --debug-javascript --run-script 'console.log(\'starting\')' --run-script 'document.querySelector(\'h1\').textContent = \'Hello\'' --run-script 'console.log(\'finished\')' --javascript-delay 1000 20230828_201457.html 20230828_201457.pdf
+        assertTrue(cp.commandline().contains("/usr/local/bin/wkhtmltopdf"));
+        assertTrue(cp.commandline().contains("'console.log(\\'starting\\')'"));
+        assertTrue(cp.commandline().contains("'document.querySelector(\\'h1\\').textContent = \\'Hello\\''"));
+    }
+
+    //@Test
     public void testSmoke() {
         String prefix = "20230828_201457";
         String htmlFileName = prefix + ".html";

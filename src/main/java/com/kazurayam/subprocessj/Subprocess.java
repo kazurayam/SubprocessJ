@@ -218,6 +218,19 @@ public class Subprocess {
             this.returncode = v;
         }
 
+        public String commandline() {
+            StringBuilder sb = new StringBuilder();
+            int count = 0;
+            for (String arg : args) {
+                if (count > 0) {
+                    sb.append(" ");
+                }
+                sb.append(quote(arg));
+                count += 1;
+            }
+            return sb.toString();
+        }
+
         /**
          * @return the return code from the subprocess. 0 indicates normal.
          * other values indicate some error.
@@ -247,20 +260,7 @@ public class Subprocess {
             PrintWriter pw = new PrintWriter(new BufferedWriter(sw));
             pw.println(String.format("<completed-process rc=\"%d\">", this.returncode()));
             pw.print("<command>");
-            int count = 0;
-            for (String arg : args) {
-                if (count > 0) {
-                    pw.print(" ");
-                }
-                if (arg.contains(" ")) {
-                    pw.print("\"");
-                    pw.print(arg);
-                    pw.print("\"");
-                } else {
-                    pw.print(arg);
-                }
-                count += 1;
-            }
+            pw.print(commandline());
             pw.println("</command>");
             //
             pw.print("<stdout>");
