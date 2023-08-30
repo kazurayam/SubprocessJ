@@ -10,6 +10,8 @@ import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 import com.kazurayam.subprocessj.ProcessTerminator.ProcessTerminationResult;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -43,7 +45,7 @@ public class HiThereServerAsProcessTest {
     @AfterAll
     static public void afterAll() throws IOException, InterruptedException {
         ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
-        assert tr.returncode() == 0;
+        assertEquals(0, tr.returncode());
     }
 
 
