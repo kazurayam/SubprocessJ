@@ -12,6 +12,7 @@
         -   <a href="#identifying-os-type" id="toc-identifying-os-type">Identifying OS Type</a>
         -   <a href="#retrieving-password-from-mac-keychain" id="toc-retrieving-password-from-mac-keychain">retrieving Password from Mac KeyChain</a>
     -   <a href="#a-sample-code-to-run-a-utility-pngquant-from-java" id="toc-a-sample-code-to-run-a-utility-pngquant-from-java">A sample code to run a utility "pngquant" from Java</a>
+    -   <a href="#how-to-get-environment-variable-values" id="toc-how-to-get-environment-variable-values">How to get Environment Variable values</a>
     -   <a href="#links" id="toc-links">links</a>
 
 # subprocessj
@@ -67,10 +68,8 @@ You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. 
     import org.junit.jupiter.api.Test;
 
     import java.io.File;
-    import java.nio.file.Files;
-    import java.nio.file.Path;
-    import java.nio.file.Paths;
     import java.util.Arrays;
+    import java.util.Map;
     import java.util.stream.Collectors;
     import static org.junit.jupiter.api.Assertions.*;
 
@@ -133,6 +132,19 @@ You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. 
             );
         }
 
+        @Test
+        void test_environment() {
+            Subprocess sp = new Subprocess();
+            Map<String, String> env = sp.environment();
+            assertNotNull(env);
+            assertNotNull(env.get("PATH"));
+            /*
+            env.keySet().forEach(key -> {
+                String value = env.get(key);
+                System.out.println(String.format("%s: %s", key, value));
+            });
+            */
+        }
     }
 
 This will emit the following output in the console:
@@ -539,28 +551,40 @@ The following JUnit5 test shows a sample how to invoke [pngquant](https://pngqua
             // 1. make sure the source PNG image is present
             Path sourcePng = fixturesDir.resolve("apple.png");
             assertTrue(Files.exists(sourcePng));
+
             // 2. copy the source to the target file
             Path targetPng = outputDir.resolve("apple.png");
-             Files.copy(sourcePng, targetPng, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(sourcePng, targetPng, StandardCopyOption.REPLACE_EXISTING);
+
             // 3. record the size information of the target file
             long sizeBeforeCompression = targetPng.toFile().length();
-            // 4. now compress it using pngquant
-            Subprocess.CompletedProcess cp;
-            try {
-                cp = new Subprocess().run(Arrays.asList(
-                    "pngquant", "--ext", ".png", "--force",
-                    "--speed", "1", targetPng.toString()
-                ));
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
+
+            // 4. check if "pngquant" is installed and available
+            CommandLocator.CommandLocatingResult clr = CommandLocator.find("pngquant");
+            System.out.println(clr.toString());
+
+            if (clr.returncode() == 0) {
+                // 5. now compress it using pngquant
+                Subprocess.CompletedProcess cp;
+                try {
+                    cp = new Subprocess().run(Arrays.asList(
+                            "pngquant", "--ext", ".png", "--force",
+                            "--speed", "1", targetPng.toString()
+                    ));
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                // 6. assert that pngquant ran successfully
+                System.out.println("[test_compress_png_using_pngquant]");
+                System.out.println(cp.toString());
+                assertEquals(0, cp.returncode());
             }
-            // 5. assert that pngquant ran successfully
-            System.out.println("[test_compress_png_using_pngquant]");
-            System.out.println(cp.toString());
-            assertEquals(0, cp.returncode());
-            // 6. record the size information of the compressed file
+
+            // 7. record the size information of the compressed file
             long sizeAfterCompression = targetPng.toFile().length();
-            // 7. report the result
+
+            // 8. report the result
             System.out.println(String.format("file: %s", targetPng.toString()));
             System.out.println(String.format("size before compression: %d", sizeBeforeCompression));
             System.out.println(String.format("size after compression: %d", sizeAfterCompression));
@@ -585,6 +609,53 @@ The output from this test is as follows:
     size before compression: 3655
     size after compression: 2818
     size delta: Δ22%
+
+## How to get Environment Variable values
+
+    package com.kazurayam.subprocessj;
+
+    import org.junit.jupiter.api.Test;
+
+    import java.util.Arrays;
+    import java.util.List;
+    import java.util.Map;
+
+    import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+    /**
+     * In the command line, you can do this
+     * ```
+     * $ echo $PATH
+     * /usr/local/bin:usr/local/sbin:/Users/kazurayam/.nodebrew/current/bin:/Users/kazurayam.pyenv/shims:...
+     * ```
+     *
+     * How to the same from Java?
+     * You can do it using the Subprocess#environment()
+     */
+    public class EchoPathTest {
+
+        @Test
+        public void test_get_environment_values_as_Map() {
+            Subprocess sp = new Subprocess();
+            Map<String, String> env = sp.environment();
+            System.out.println(String.format("PATH: %s", env.get("PATH")));
+            // split the PATH value by ":", print the elements by line
+            List<String> values = Arrays.asList(env.get("PATH").split(":"));
+            values.stream().sorted().forEach(System.out::println);
+        }
+
+        @Test
+        public void test_get_environment_variable_value() {
+            Subprocess sp = new Subprocess();
+            String pathValue = sp.environment("PATH");
+            System.out.println(String.format("PATH: %s", pathValue));
+            assertNotNull(pathValue);
+        }
+    }
+
+When execute, I got the following output
+
+    PATH: /bin:/sbin:/usr/bin:/usr/local/bin:/usr/local/bin:/usr/local/go/bin:/usr/local/sbin:/usr/sbin:/Users/kazuakiurayama/.nodebrew/current/bin: ... and a lot more
 
 ## links
 

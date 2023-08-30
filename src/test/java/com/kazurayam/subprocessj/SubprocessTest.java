@@ -4,10 +4,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -70,4 +68,17 @@ class SubprocessTest {
         );
     }
 
+    @Test
+    void test_environment() {
+        Subprocess sp = new Subprocess();
+        Map<String, String> env = sp.environment();
+        assertNotNull(env);
+        assertNotNull(env.get("PATH"));
+        /*
+        env.keySet().forEach(key -> {
+            String value = env.get(key);
+            System.out.println(String.format("%s: %s", key, value));
+        });
+        */
+    }
 }

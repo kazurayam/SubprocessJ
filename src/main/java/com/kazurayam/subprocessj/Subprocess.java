@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -79,7 +80,19 @@ public class Subprocess {
 
     private File cwd = new File(".");
 
-    public Subprocess() {}
+    private ProcessBuilder processBuilder;
+
+    public Subprocess() {
+        processBuilder = new ProcessBuilder();
+    }
+
+    public Map<String, String> environment() {
+        return processBuilder.environment();
+    }
+
+    public String environment(String key) {
+        return this.environment().get(key);
+    }
 
     /**
      * Change the current working directory.
@@ -128,10 +141,9 @@ public class Subprocess {
                 );
             }
         }
-        ProcessBuilder builder = new ProcessBuilder();
-        builder.directory(this.cwd);
-        builder.command(command);
-        Process process = builder.start();
+        processBuilder.directory(this.cwd);
+        processBuilder.command(command);
+        Process process = processBuilder.start();
         CompletedProcess cp = new CompletedProcess(command);
 
         // https://www.baeldung.com/java-executor-wait-for-threads
@@ -206,6 +218,19 @@ public class Subprocess {
             this.returncode = v;
         }
 
+        public String commandline() {
+            StringBuilder sb = new StringBuilder();
+            int count = 0;
+            for (String arg : args) {
+                if (count > 0) {
+                    sb.append(" ");
+                }
+                sb.append(quote(arg));
+                count += 1;
+            }
+            return sb.toString();
+        }
+
         /**
          * @return the return code from the subprocess. 0 indicates normal.
          * other values indicate some error.
@@ -228,26 +253,14 @@ public class Subprocess {
             return this.stderr;
         }
 
+
         @Override
         public String toString() {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(new BufferedWriter(sw));
             pw.println(String.format("<completed-process rc=\"%d\">", this.returncode()));
             pw.print("<command>");
-            int count = 0;
-            for (String arg : args) {
-                if (count > 0) {
-                    pw.print(" ");
-                }
-                if (arg.contains(" ")) {
-                    pw.print("\"");
-                    pw.print(arg);
-                    pw.print("\"");
-                } else {
-                    pw.print(arg);
-                }
-                count += 1;
-            }
+            pw.print(commandline());
             pw.println("</command>");
             //
             pw.print("<stdout>");
@@ -270,12 +283,37 @@ public class Subprocess {
                     pw.println(line.trim());
                 }
             }
-            pw.println("</stdout>");
+            pw.println("</stderr>");
             //
             pw.println("</completed-process>");
             pw.flush();
             pw.close();
             return sw.toString();
+        }
+
+        public static String quote(String str) {
+            char[] chs = str.toCharArray();
+            StringBuilder sb = new StringBuilder();
+            boolean containsSpecialChar = false;
+            for (char c : chs) {
+                if (c ==' ' || c == ';' || c == '&' || c == '(' || c == ')' || c == '|' ||
+                        c == '^' || c == '<' || c == '>' || c == '?' || c == '*' ||
+                        c == '[' || c == ']' || c == '$' || c == '"' || c == '`' ||
+                        c == '{' || c == '}' || c == '\n' || c == '\r' || c == '\t' ) {
+                    containsSpecialChar = true;
+                    sb.append(c);
+                } else if (c =='\'') {
+                    containsSpecialChar = true;
+                    sb.append('\\');
+                    sb.append(c);
+                } else {
+                    sb.append(c);
+                }
+            }
+            if (containsSpecialChar) {
+                return String.format("'%s'", sb);
+            } else
+                return sb.toString();
         }
     }
 
