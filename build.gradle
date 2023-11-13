@@ -12,7 +12,7 @@ repositories {
 
 group = 'com.kazurayam'
 archivesBaseName = "subprocessj"
-version = '0.3.7'
+version = '0.3.8-SNAPSHOT'
 
 ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
@@ -104,3 +104,16 @@ tasks.withType(Sign) {
     onlyIf { isReleaseVersion }
 }
 
+
+/**
+ * translate docs/index_.adoc to docs/index.md
+ * with instruction to Jekyll Blog to generate TOC
+ */
+task indextoc {
+    doLast {
+        exec {
+            workingDir './docs'
+            commandLine './adoc2md.sh', '-t', '-v', project.version
+        }
+    }
+}

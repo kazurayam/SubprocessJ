@@ -1,19 +1,4 @@
--   <a href="#subprocessj" id="toc-subprocessj">subprocessj</a>
-    -   <a href="#what-is-this" id="toc-what-is-this">What is this?</a>
-    -   <a href="#motivation" id="toc-motivation">Motivation</a>
-    -   <a href="#api" id="toc-api">API</a>
-    -   <a href="#example-of-using-subprocess-classes" id="toc-example-of-using-subprocess-classes">Example of using Subprocess classes</a>
-        -   <a href="#starting-a-process" id="toc-starting-a-process">Starting a process</a>
-        -   <a href="#stopping-a-process" id="toc-stopping-a-process">Stopping a process</a>
-        -   <a href="#finding-the-path-of-an-os-command" id="toc-finding-the-path-of-an-os-command">Finding the path of an OS command</a>
-        -   <a href="#finding-process-id" id="toc-finding-process-id">Finding process id</a>
-            -   <a href="#finding-the-pid-of-the-current-jvm" id="toc-finding-the-pid-of-the-current-jvm">Finding the pid of the current JVM</a>
-            -   <a href="#finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port" id="toc-finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port">Finding the pid of a process which is listening to a specific IP port</a>
-        -   <a href="#identifying-os-type" id="toc-identifying-os-type">Identifying OS Type</a>
-        -   <a href="#retrieving-password-from-mac-keychain" id="toc-retrieving-password-from-mac-keychain">retrieving Password from Mac KeyChain</a>
-    -   <a href="#a-sample-code-to-run-a-utility-pngquant-from-java" id="toc-a-sample-code-to-run-a-utility-pngquant-from-java">A sample code to run a utility "pngquant" from Java</a>
-    -   <a href="#how-to-get-environment-variable-values" id="toc-how-to-get-environment-variable-values">How to get Environment Variable values</a>
-    -   <a href="#links" id="toc-links">links</a>
+{:toc}
 
 # subprocessj
 
@@ -183,6 +168,8 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     import java.util.Arrays;
     import java.util.List;
     import com.kazurayam.subprocessj.ProcessTerminator.ProcessTerminationResult;
+
+    import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertTrue;
 
     /**
@@ -216,7 +203,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
         @AfterAll
         static public void afterAll() throws IOException, InterruptedException {
             ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
-            assert tr.returncode() == 0;
+            assertEquals(0, tr.returncode());
         }
 
 
@@ -241,24 +228,14 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     public class CommandLocatorTest {
 
         /**
-         * assert that the "tiger" command is not there
-         */
-        @Test
-        void test_find_tiger_not_exists() {
-            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
-            printCFR("test_find_tiger_not_exists", cfr);
-            assertNotEquals(0, cfr.returncode());
-        }
-
-        /**
          * On Mac, the `git` command will be found at `/usr/local/bin/git`
          */
         @Test
         void test_git_on_Mac() {
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
+            assertEquals(0, cfr.returncode());
             if (OSType.isMac()) {
-                CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
                 assertEquals("/usr/local/bin/git", cfr.command());
-                assertEquals(0, cfr.returncode());
             }
         }
 
@@ -365,6 +342,15 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             }
         }
 
+        /**
+         * assert that the "tiger" command is not there
+         */
+        @Test
+        void test_find_tiger_not_exists() {
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
+            printCFR("test_find_tiger_not_exists", cfr);
+            assertNotEquals(0, cfr.returncode());
+        }
 
         private void printCFR(String label, CommandLocatingResult cfr) {
             System.out.println("-------- " + label + " --------");

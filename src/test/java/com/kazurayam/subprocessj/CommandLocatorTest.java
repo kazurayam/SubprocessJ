@@ -9,24 +9,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommandLocatorTest {
 
     /**
-     * assert that the "tiger" command is not there
-     */
-    @Test
-    void test_find_tiger_not_exists() {
-        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
-        printCFR("test_find_tiger_not_exists", cfr);
-        assertNotEquals(0, cfr.returncode());
-    }
-
-    /**
      * On Mac, the `git` command will be found at `/usr/local/bin/git`
      */
     @Test
     void test_git_on_Mac() {
+        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
+        assertEquals(0, cfr.returncode());
         if (OSType.isMac()) {
-            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
             assertEquals("/usr/local/bin/git", cfr.command());
-            assertEquals(0, cfr.returncode());
         }
     }
 
@@ -133,6 +123,15 @@ public class CommandLocatorTest {
         }
     }
 
+    /**
+     * assert that the "tiger" command is not there
+     */
+    @Test
+    void test_find_tiger_not_exists() {
+        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
+        printCFR("test_find_tiger_not_exists", cfr);
+        assertNotEquals(0, cfr.returncode());
+    }
 
     private void printCFR(String label, CommandLocatingResult cfr) {
         System.out.println("-------- " + label + " --------");
