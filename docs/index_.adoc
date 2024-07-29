@@ -77,7 +77,7 @@ include::../src/test/java/com/kazurayam/subprocessj/HiThereServerAsProcessTest.j
 
 @BeforeAll-annotated method starts the link:../src/main/java/com/kazurayam/subprocessj/HiThereServer.java[HiThereServer] using `ProcessBuilder`. The process will start and stay running background. The HiThereServer is a simple HTTP server, listens to the IP port 8500.
 
-@Test-annoted method makes an HTTP request to the HiThereServer.
+@Test-annotated method makes an HTTP request to the HiThereServer.
 
 @AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
 
@@ -116,10 +116,10 @@ include::../src/test/java/com/kazurayam/subprocessj/OSTypeTest.java[]
 I often write Selenium test that access to some Web apps with authentication.
 I need to put username/password pair. Due to obvious security reason,
 I do not like to write password strings in the source code at all.
-I would rather like to use the link:https://support.apple.com/guide/keychain-access/kyca1083/mac[KeyChain] of macos
+I would rather like to use the link:https://support.apple.com/guide/keychain-access/kyca1083/mac[KeyChain] of macOS
 to store passwords, and I want my Selenium test to retrieve the password from KeyChain.
 
-KeyChain provides a commandline interface named `security` which is built-in the macos.
+KeyChain provides a commandline interface named `security` which is built-in the macOS.
 So I want my Selenium test to execute the `security` command and
 retrieve the password value I need.
 
@@ -129,6 +129,23 @@ The following sample shows how to.
 ----
 include::../src/test/java/example/KeyChainExample.java[]
 ----
+
+== Running a javascript on Node.js from Java
+
+I have a javascript `hello.js`, which is (as you can correctly expect):
+
+[source, javascript]
+----
+console.log("Hello, World!");
+----
+
+The following JUnit5 test runs Node.js in command line while specifying the `hello.js` to execute:
+
+[source, java]
+----
+include::../src/test/java/com/kazurayam/subprocessj/NodejsTest.java[]
+----
+
 
 == A sample code to run a utility "pngquant" from Java
 
@@ -164,8 +181,8 @@ size delta: Δ22%
 include::../src/test/java/com/kazurayam/subprocessj/EchoPathTest.java[]
 ----
 
-When execute, I got the following output
-[source, java]
+When I executed, I got the following output
+[source, text]
 ----
 PATH: /bin:/sbin:/usr/bin:/usr/local/bin:/usr/local/bin:/usr/local/go/bin:/usr/local/sbin:/usr/sbin:/Users/kazuakiurayama/.nodebrew/current/bin: ... and a lot more
 ----

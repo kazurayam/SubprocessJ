@@ -1,18 +1,17 @@
 package com.kazurayam.subprocessj;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
-
-import static org.junit.jupiter.api.Assertions.*;
-import java.io.IOException;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * [pngquant](https://pngquant.org/) is a command-line utility for lossy compression of PNG images.
