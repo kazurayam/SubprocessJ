@@ -9,24 +9,36 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommandLocatorTest {
 
     /**
-     * assert that the "tiger" command is not there
-     */
-    @Test
-    void test_find_tiger_not_exists() {
-        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
-        printCFR("test_find_tiger_not_exists", cfr);
-        assertNotEquals(0, cfr.returncode());
-    }
-
-    /**
      * On Mac, the `git` command will be found at `/usr/local/bin/git`
      */
     @Test
     void test_git_on_Mac() {
+        CommandLocator.CommandLocatingResult clr = CommandLocator.find("git");
+        assertEquals(0, clr.returncode());
         if (OSType.isMac()) {
-            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
-            assertEquals("/usr/local/bin/git", cfr.command());
-            assertEquals(0, cfr.returncode());
+            assertEquals("/usr/local/bin/git", clr.command());
+        }
+    }
+
+    @Test
+    void test_jq_on_Mac() {
+        CommandLocator.CommandLocatingResult clr = CommandLocator.find("jq");
+        assertEquals(0, clr.returncode());
+        if (OSType.isMac()) {
+            String userHome = System.getProperty("user.home");
+            String jqPath = clr.command().substring(userHome.length() + 1);
+            assertEquals(".pyenv/shims/jq", jqPath);
+        }
+    }
+
+    @Test
+    void test_node_on_Mac() {
+        CommandLocator.CommandLocatingResult clr = CommandLocator.find("node");
+        assertEquals(0, clr.returncode());
+        if (OSType.isMac()) {
+            String userHome = System.getProperty("user.home");
+            String nodePath = clr.command().substring(userHome.length() + 1);
+            assertEquals(".nodebrew/current/bin/node", nodePath);
         }
     }
 
@@ -133,6 +145,15 @@ public class CommandLocatorTest {
         }
     }
 
+    /**
+     * assert that the "tiger" command is not there
+     */
+    @Test
+    void test_find_tiger_not_exists() {
+        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
+        printCFR("test_find_tiger_not_exists", cfr);
+        assertNotEquals(0, cfr.returncode());
+    }
 
     private void printCFR(String label, CommandLocatingResult cfr) {
         System.out.println("-------- " + label + " --------");

@@ -1,19 +1,4 @@
--   <a href="#subprocessj" id="toc-subprocessj">subprocessj</a>
-    -   <a href="#what-is-this" id="toc-what-is-this">What is this?</a>
-    -   <a href="#motivation" id="toc-motivation">Motivation</a>
-    -   <a href="#api" id="toc-api">API</a>
-    -   <a href="#example-of-using-subprocess-classes" id="toc-example-of-using-subprocess-classes">Example of using Subprocess classes</a>
-        -   <a href="#starting-a-process" id="toc-starting-a-process">Starting a process</a>
-        -   <a href="#stopping-a-process" id="toc-stopping-a-process">Stopping a process</a>
-        -   <a href="#finding-the-path-of-an-os-command" id="toc-finding-the-path-of-an-os-command">Finding the path of an OS command</a>
-        -   <a href="#finding-process-id" id="toc-finding-process-id">Finding process id</a>
-            -   <a href="#finding-the-pid-of-the-current-jvm" id="toc-finding-the-pid-of-the-current-jvm">Finding the pid of the current JVM</a>
-            -   <a href="#finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port" id="toc-finding-the-pid-of-a-process-which-is-listening-to-a-specific-ip-port">Finding the pid of a process which is listening to a specific IP port</a>
-        -   <a href="#identifying-os-type" id="toc-identifying-os-type">Identifying OS Type</a>
-        -   <a href="#retrieving-password-from-mac-keychain" id="toc-retrieving-password-from-mac-keychain">retrieving Password from Mac KeyChain</a>
-    -   <a href="#a-sample-code-to-run-a-utility-pngquant-from-java" id="toc-a-sample-code-to-run-a-utility-pngquant-from-java">A sample code to run a utility "pngquant" from Java</a>
-    -   <a href="#how-to-get-environment-variable-values" id="toc-how-to-get-environment-variable-values">How to get Environment Variable values</a>
-    -   <a href="#links" id="toc-links">links</a>
+{:toc}
 
 # subprocessj
 
@@ -183,6 +168,8 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     import java.util.Arrays;
     import java.util.List;
     import com.kazurayam.subprocessj.ProcessTerminator.ProcessTerminationResult;
+
+    import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertTrue;
 
     /**
@@ -216,7 +203,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
         @AfterAll
         static public void afterAll() throws IOException, InterruptedException {
             ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
-            assert tr.returncode() == 0;
+            assertEquals(0, tr.returncode());
         }
 
 
@@ -224,7 +211,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 
 @BeforeAll-annotated method starts the [HiThereServer](../src/main/java/com/kazurayam/subprocessj/HiThereServer.java) using `ProcessBuilder`. The process will start and stay running background. The HiThereServer is a simple HTTP server, listens to the IP port 8500.
 
-@Test-annoted method makes an HTTP request to the HiThereServer.
+@Test-annotated method makes an HTTP request to the HiThereServer.
 
 @AfterAll-annotated method shuts down the HiThereServer using the `ProcessTerminator`. You specify the IP port 8500. The ProcessKiller will find the process ID of a process which is listening the port 8500, and kill the process.
 
@@ -241,24 +228,36 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
     public class CommandLocatorTest {
 
         /**
-         * assert that the "tiger" command is not there
-         */
-        @Test
-        void test_find_tiger_not_exists() {
-            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
-            printCFR("test_find_tiger_not_exists", cfr);
-            assertNotEquals(0, cfr.returncode());
-        }
-
-        /**
          * On Mac, the `git` command will be found at `/usr/local/bin/git`
          */
         @Test
         void test_git_on_Mac() {
+            CommandLocator.CommandLocatingResult clr = CommandLocator.find("git");
+            assertEquals(0, clr.returncode());
             if (OSType.isMac()) {
-                CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
-                assertEquals("/usr/local/bin/git", cfr.command());
-                assertEquals(0, cfr.returncode());
+                assertEquals("/usr/local/bin/git", clr.command());
+            }
+        }
+
+        @Test
+        void test_jq_on_Mac() {
+            CommandLocator.CommandLocatingResult clr = CommandLocator.find("jq");
+            assertEquals(0, clr.returncode());
+            if (OSType.isMac()) {
+                String userHome = System.getProperty("user.home");
+                String jqPath = clr.command().substring(userHome.length() + 1);
+                assertEquals(".pyenv/shims/jq", jqPath);
+            }
+        }
+
+        @Test
+        void test_node_on_Mac() {
+            CommandLocator.CommandLocatingResult clr = CommandLocator.find("node");
+            assertEquals(0, clr.returncode());
+            if (OSType.isMac()) {
+                String userHome = System.getProperty("user.home");
+                String nodePath = clr.command().substring(userHome.length() + 1);
+                assertEquals(".nodebrew/current/bin/node", nodePath);
             }
         }
 
@@ -365,6 +364,15 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             }
         }
 
+        /**
+         * assert that the "tiger" command is not there
+         */
+        @Test
+        void test_find_tiger_not_exists() {
+            CommandLocator.CommandLocatingResult cfr = CommandLocator.find("tiger");
+            printCFR("test_find_tiger_not_exists", cfr);
+            assertNotEquals(0, cfr.returncode());
+        }
 
         private void printCFR(String label, CommandLocatingResult cfr) {
             System.out.println("-------- " + label + " --------");
@@ -467,10 +475,10 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
 I often write Selenium test that access to some Web apps with authentication.
 I need to put username/password pair. Due to obvious security reason,
 I do not like to write password strings in the source code at all.
-I would rather like to use the [KeyChain](https://support.apple.com/guide/keychain-access/kyca1083/mac) of macos
+I would rather like to use the [KeyChain](https://support.apple.com/guide/keychain-access/kyca1083/mac) of macOS
 to store passwords, and I want my Selenium test to retrieve the password from KeyChain.
 
-KeyChain provides a commandline interface named `security` which is built-in the macos.
+KeyChain provides a commandline interface named `security` which is built-in the macOS.
 So I want my Selenium test to execute the `security` command and
 retrieve the password value I need.
 
@@ -504,6 +512,65 @@ The following sample shows how to.
         }
     }
 
+## Running a javascript on Node.js from Java
+
+I have a javascript `hello.js`, which is (as you can correctly expect):
+
+    console.log("Hello, World!");
+
+The following JUnit5 test runs Node.js in command line while specifying the `hello.js` to execute:
+
+    package com.kazurayam.subprocessj;
+
+    import org.junit.jupiter.api.Test;
+
+    import java.io.IOException;
+    import java.nio.file.Path;
+    import java.nio.file.Paths;
+    import java.util.Arrays;
+    import static org.junit.jupiter.api.Assertions.assertEquals;
+    import static org.junit.jupiter.api.Assertions.fail;
+
+    /**
+     * This test runs a javascript "hello.js" on Node.js in a subprocess.
+     * It waits for the subprocess to finish.
+     * It reads and consumes the stream of stderr of the subprocess to print in the console.
+     * It consumes the stdout as well.
+     */
+    public class NodejsTest {
+
+        private Path scriptPath =
+                Paths.get(".").resolve("src/test/js/hello.js");
+        @Test
+        public void test_run_javascript_using_node_command() {
+            CommandLocator.CommandLocatingResult clr =
+                    CommandLocator.find("node");
+            //System.out.println(clr.toString());
+
+            if (clr.returncode() == 0) {
+                Subprocess.CompletedProcess cp;
+                try {
+                    // You are supposed to specify the "node" command in full path
+                    // such as "/Users/kazurayam/.nodebrew/current/bin/node"
+                    cp = new Subprocess()
+                            .run(Arrays.asList(clr.command(), scriptPath.toString()));
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                cp.stderr().forEach(System.err::println);
+                cp.stdout().forEach(System.out::println);
+                assertEquals(0, cp.returncode());
+            } else {
+                Subprocess sp = new Subprocess();
+                String pathValue = sp.environment("PATH");
+                fail(String.format(
+                        "the node command was not found in the PATH. " +
+                                "Environment Variable PATH = %s",
+                        pathValue));
+            }
+        }
+    }
+
 ## A sample code to run a utility "pngquant" from Java
 
 The following JUnit5 test shows a sample how to invoke [pngquant](https://pngquant.org/) to compress a PNG image file.
@@ -511,18 +578,17 @@ The following JUnit5 test shows a sample how to invoke [pngquant](https://pngqua
     package com.kazurayam.subprocessj;
 
     import org.junit.jupiter.api.BeforeEach;
+    import org.junit.jupiter.api.Test;
 
+    import java.io.IOException;
     import java.nio.file.Files;
     import java.nio.file.Path;
     import java.nio.file.Paths;
-    import org.junit.jupiter.api.Test;
-    import org.junit.jupiter.api.BeforeEach;
-    import com.kazurayam.subprocessj.CommandLocator.CommandLocatingResult;
-
-    import static org.junit.jupiter.api.Assertions.*;
-    import java.io.IOException;
     import java.nio.file.StandardCopyOption;
     import java.util.Arrays;
+
+    import static org.junit.jupiter.api.Assertions.assertEquals;
+    import static org.junit.jupiter.api.Assertions.assertTrue;
 
     /**
      * [pngquant](https://pngquant.org/) is a command-line utility for lossy compression of PNG images.
@@ -653,7 +719,7 @@ The output from this test is as follows:
         }
     }
 
-When execute, I got the following output
+When I executed, I got the following output
 
     PATH: /bin:/sbin:/usr/bin:/usr/local/bin:/usr/local/bin:/usr/local/go/bin:/usr/local/sbin:/usr/sbin:/Users/kazuakiurayama/.nodebrew/current/bin: ... and a lot more
 
