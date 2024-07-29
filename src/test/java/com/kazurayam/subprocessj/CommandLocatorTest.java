@@ -13,10 +13,32 @@ public class CommandLocatorTest {
      */
     @Test
     void test_git_on_Mac() {
-        CommandLocator.CommandLocatingResult cfr = CommandLocator.find("git");
-        assertEquals(0, cfr.returncode());
+        CommandLocator.CommandLocatingResult clr = CommandLocator.find("git");
+        assertEquals(0, clr.returncode());
         if (OSType.isMac()) {
-            assertEquals("/usr/local/bin/git", cfr.command());
+            assertEquals("/usr/local/bin/git", clr.command());
+        }
+    }
+
+    @Test
+    void test_jq_on_Mac() {
+        CommandLocator.CommandLocatingResult clr = CommandLocator.find("jq");
+        assertEquals(0, clr.returncode());
+        if (OSType.isMac()) {
+            String userHome = System.getProperty("user.home");
+            String jqPath = clr.command().substring(userHome.length() + 1);
+            assertEquals(".pyenv/shims/jq", jqPath);
+        }
+    }
+
+    @Test
+    void test_node_on_Mac() {
+        CommandLocator.CommandLocatingResult clr = CommandLocator.find("node");
+        assertEquals(0, clr.returncode());
+        if (OSType.isMac()) {
+            String userHome = System.getProperty("user.home");
+            String nodePath = clr.command().substring(userHome.length() + 1);
+            assertEquals(".nodebrew/current/bin/node", nodePath);
         }
     }
 
