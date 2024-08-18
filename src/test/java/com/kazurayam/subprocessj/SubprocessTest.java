@@ -69,7 +69,7 @@ class SubprocessTest {
     }
 
     @Test
-    void test_environment() {
+    void test_environment_readOnly() {
         Subprocess sp = new Subprocess();
         Map<String, String> env = sp.environment();
         assertNotNull(env);
@@ -80,5 +80,18 @@ class SubprocessTest {
             System.out.println(String.format("%s: %s", key, value));
         });
         */
+    }
+
+    /**
+     * See https://github.com/kazurayam/VBACallGraph/issues/45 for the background info
+     */
+    @Test
+    void test_environment_setValue() {
+        Subprocess sp = new Subprocess();
+        Map<String, String> env = sp.environment();
+        env.put("PLANTUML_LIMIT_SIZE", "8192");
+        //
+        String actual = sp.environment("PLANTUML_LIMIT_SIZE");
+        assertEquals("8192", actual);
     }
 }
